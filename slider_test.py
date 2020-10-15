@@ -3,6 +3,7 @@ Slider that acts as a controller for the plane and streams its values.
 """
 
 import numpy as np
+from multiprocessing import Process,Queue,Pipe
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import sys
@@ -10,7 +11,7 @@ import sys
 time = 0.00
 
 
-def user_input():
+def user_input(conn):
     a_min = -100  # the minimial value of the paramater a
     a_max = 100  # the maximal value of the paramater a
     a_init = 0  # the value of the parameter a to be used initially, when the graph is created
@@ -18,13 +19,14 @@ def user_input():
     dt = 0.05
 
     def handle_close(evt):
+        conn.close()
         sys.exit()
 
     def onclick(event):
         global time
 
-        # yield a_slider.val  # instead of print, yield (?)
-        print(time, a_slider.val)
+        # print(time, a_slider.val)
+        conn.send([a_slider.val, time])
 
         plt.pause(dt)
         time += dt
@@ -43,6 +45,4 @@ def user_input():
     plt.show()
 
 
-# for (t,x) in user_input():
-#     print(t,x)
-user_input()
+
