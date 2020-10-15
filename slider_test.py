@@ -31,7 +31,7 @@ def user_input(conn):
         plt.pause(dt)
         time += dt
         time = round(time, 2)
-        onclick('1')
+        onclick('1')  # placeholder
 
     fig = plt.figure(figsize=(8, 3))
     fig.canvas.mpl_connect('close_event', handle_close)
