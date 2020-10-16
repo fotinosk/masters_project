@@ -5,6 +5,8 @@ User constantly inputs data using slider and output is plotted on graph.
 
 import control
 from scipy import signal
+import matplotlib.pyplot as plt
+import numpy as np
 
 A = [[0.00187, 0.0263, -86.15, -31.939],
      [-0.07, -0.2941, 672.9, -4.12],
@@ -23,6 +25,8 @@ sign = signal.lti(A, B, C, D)
 # print(sign.output([10, 10, 10, 30, 300, 10, 20, 50], [1, 2, 3, 4, 5, 6, 7, 8]))
 # inputs and timestamps and outputs the output and state
 
+# hl,  = plt.plot([], [])
+
 
 def model(time, inputs, state):
     """
@@ -32,6 +36,10 @@ def model(time, inputs, state):
      :return: outputs and last state, plot(?)
      """
     t, yout, xout = sign.output(inputs, time, X0=state)
+
+    # hl.set_x_data(np.append(hl.get_xdata(), t))
+    # hl.set_y_data(np.append(hl.get_ydata(), yout))
+    # plt.draw()
 
     # TODO: add code so that the output can be plotted
 
