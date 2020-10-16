@@ -5,24 +5,23 @@ from multiprocessing import Process, Pipe
 from state_space_model import model
 import sys
 
-
 if __name__ == '__main__':
     parent_conn, child_conn = Pipe()
     p = Process(target=user_input, args=(child_conn,))
     p.start()
-    input_time = [[],[]]
+    input_time = [[], []]
+    state = None
     while True:
         # change format to bunches of 20 and to input array, time array
         try:
             received = parent_conn.recv()
-            print(received)
+            # print(received)  # prints tuple of time and slider value
             input_time[0].append(received[0]), input_time[1].append(received[1])
             child_conn.close()
-            state = None
             if len(input_time[0]) == 20:
-                print(input_time)
+                # print(input_time)  # prints list of 20 tuples
                 yout, state, time = model(input_time[1], input_time[0], state)
-                print(yout,state,time)
+                print(yout, state, time)  # prints model output
                 input_time = [[], []]
         except:
             print('Shutting down')

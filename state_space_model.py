@@ -25,8 +25,6 @@ sign = signal.lti(A, B, C, D)
 # print(sign.output([10, 10, 10, 30, 300, 10, 20, 50], [1, 2, 3, 4, 5, 6, 7, 8]))
 # inputs and timestamps and outputs the output and state
 
-# hl,  = plt.plot([], [])
-
 
 def model(time, inputs, state):
     """
@@ -37,10 +35,9 @@ def model(time, inputs, state):
      """
     t, yout, xout = sign.output(inputs, time, X0=state)
 
-    # hl.set_x_data(np.append(hl.get_xdata(), t))
-    # hl.set_y_data(np.append(hl.get_ydata(), yout))
-    # plt.draw()
-
-    # TODO: add code so that the output can be plotted
+    plt.plot(time, yout)
+    # plt.plot(time, inputs)
+    plt.show(block=False)  # needed so that it the rest of the program can run
+    plt.pause(0.05)
 
     return yout, xout[-1], time
