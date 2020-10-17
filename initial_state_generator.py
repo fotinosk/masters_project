@@ -25,4 +25,4 @@ def state(danger=False):
         p_rate = round(p_rate, 3)
         p_angle = random.randint(-20, 20)
 
-    return [[f_vel], [v_vel], [p_rate], [p_angle]]
+    return [f_vel, v_vel, p_rate, p_angle]
