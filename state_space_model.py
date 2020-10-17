@@ -16,8 +16,12 @@ B = [[1.93],
      [-15.21],
      [-0.9686],
      [0]]
-C = [[0, 0, 0, 1]]
-D = [0]
+C = [[0, 0, 0, 1],
+     [0, 0, 1, 0],
+     [-0.07, -0.2941, 672.9, -4.12]]
+D = [[0],
+     [0],
+     [-15.21]]
 
 sign = signal.lti(A, B, C, D)
 
@@ -30,13 +34,21 @@ def model(time, inputs, state):
     """
      :param time: Array containing the time intervals
      :param inputs: Array containing the inputs
-     :param state: Array containing the state (initially None?)
+     :param state: Array containing the state
      :return: outputs and last state, plot(?)
      """
     t, yout, xout = sign.output(inputs, time, X0=state)
 
-    plt.plot(time, yout)
-    # plt.plot(time, inputs)
+    y0 = [z[0] for z in yout]
+    y1 = [z[1] for z in yout]
+    y2 = [z[2] for z in yout]
+
+    plot0 = plt.figure(1)
+    plt.plot(time, y0)
+    plot1 = plt.figure(2)
+    plt.plot(time, y1)
+    plot2 = plt.figure(3)
+    plt.plot(time, y2)
     plt.show(block=False)  # needed so that it the rest of the program can run
     plt.pause(0.05)
 

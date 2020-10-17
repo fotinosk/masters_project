@@ -20,7 +20,7 @@ if __name__ == '__main__':
             child_conn.close()
             if len(input_time[0]) == 20:
                 yout, state, time = model(input_time[1], input_time[0], state)
-                print(yout, state, time)  # prints model output
+                # print(yout, state, time)  # prints model output
                 input_time = [[], []]
         except:
             print(sys.exc_info())
