@@ -16,14 +16,14 @@ if __name__ == '__main__':
         try:
             received = parent_conn.recv()
             # print(received)  # prints tuple of time and slider value
-            input_time[0].append(received[0]), input_time[1].append(received[1])
+            input_time[0].append([received[0], received[1]]), input_time[1].append(received[2])
             child_conn.close()
             if len(input_time[0]) == 20:
                 yout, state, time = model(input_time[1], input_time[0], state)
                 # print(yout, state, time)  # prints model output
                 input_time = [[], []]
         except:
-            print(sys.exc_info())
+            # print(sys.exc_info())  # use when debugging
             print('Shutting down')
             sys.exit()
         # this module tries to close the pipe, but it remains open until

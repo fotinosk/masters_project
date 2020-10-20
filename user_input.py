@@ -3,12 +3,13 @@ Slider that acts as a controller for the plane and streams its values.
 """
 
 import numpy as np
-from multiprocessing import Process,Queue,Pipe
+from multiprocessing import Process, Queue, Pipe
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import sys
 
 time = 0.00
+
 
 def user_input(conn):
     a_min = -100  # the minimial value of the paramater a
@@ -30,7 +31,7 @@ def user_input(conn):
 
         fig.canvas.mpl_disconnect(click)  # disconnects so that second click doesnt raise errors
 
-        conn.send([a_slider.val, time, b_slider.val]) # dont change order, user in inteface on this order
+        conn.send([a_slider.val, b_slider.val, time])  # dont change order, user in inteface on this order
         plt.pause(dt)
         time += dt
         time = round(time, 2)
@@ -48,6 +49,3 @@ def user_input(conn):
 
     plt.plot()
     plt.show()
-
-
-
