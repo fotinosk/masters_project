@@ -13,9 +13,10 @@ if __name__ == '__main__':
     input_time = [[], []]
     state = state(danger=False)
     while True:
+        # TODO: there is a bug and when moving from one bunch to the next
+        #       there is an order of magnitude jump
         try:
             received = parent_conn.recv()
-            # print(received)  # prints tuple of time and slider value
             input_time[0].append([received[0], received[1]]), input_time[1].append(received[2])
             child_conn.close()
             if len(input_time[0]) == 20:

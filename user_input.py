@@ -7,13 +7,14 @@ from multiprocessing import Process, Queue, Pipe
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import sys
+import math
 
 time = 0.00
 
 
 def user_input(conn):
-    a_min = -100  # the minimial value of the paramater a
-    a_max = 100  # the maximal value of the paramater a
+    a_min = -math.pi  # the minimial value of the paramater a
+    a_max = math.pi  # the maximal value of the paramater a
     a_init = 0  # the value of the parameter a to be used initially, when the graph is created
 
     b_min = - 50
@@ -37,7 +38,7 @@ def user_input(conn):
         time = round(time, 2)
         onclick('1')  # placeholder
 
-    fig = plt.figure(figsize=(8, 6))
+    fig = plt.figure(figsize=(8, 3))
     fig.canvas.mpl_connect('close_event', handle_close)
     click = fig.canvas.mpl_connect('button_press_event', onclick)
 

@@ -43,23 +43,18 @@ def model(time, inputs, state):
      """
     t, yout, xout = sign.output(inputs, time, X0=state)
 
-    y0 = [z[0] for z in yout]
-    y1 = [z[1] for z in yout]
-    y2 = [z[2] for z in yout]
-
-    plot0 = plt.figure(1)
-    plt.plot(time, y0)
-    plot1 = plt.figure(2)
-    plt.plot(time, y1)
-    plot2 = plt.figure(3)
-    plt.plot(time, y2)
-
-    # fig, axs = plt.subplots(3)
-    # axs[0].plot(time, y0)
-    # axs[1].plot(time, y1)
-    # axs[2].plot(time, y2)
+    # y0 = [z[0] for z in yout]
+    # y1 = [z[1] for z in yout]
+    # y2 = [z[2] for z in yout]
+    #
+    # plot0 = plt.figure(1)
+    # plt.plot(time, y0)
+    # plot1 = plt.figure(2)
+    # plt.plot(time, y1)
+    # plot2 = plt.figure(3)
+    # plt.plot(time, y2)
 
     plt.show(block=False)  # needed so that it the rest of the program can run
-    plt.pause(0.1)
+    plt.pause(0.05)
 
     return yout, xout[-1], time
