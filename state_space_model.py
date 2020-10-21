@@ -29,7 +29,6 @@ D = [[0, 0],
 sign = signal.lti(A, B, C, D)
 
 
-# print(sign.output([10, 10, 10, 30, 300, 10, 20, 50], [1, 2, 3, 4, 5, 6, 7, 8]))
 # print(sign.output([[1, 1], [1, 1], [1, 1]], [1, 2, 3]))
 # inputs and timestamps and outputs the output and state
 

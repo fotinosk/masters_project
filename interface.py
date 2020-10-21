@@ -13,7 +13,9 @@ if __name__ == '__main__':
     p = Process(target=user_input, args=(child_conn,))
     p.start()
     input_time = [[], []]
-    state = state(danger=False)
+    # TODO : abrupt change of states between bunches
+    # state = state(danger=False)
+    state = [1, 0, 0, 1]
     while True:
         try:
             received = parent_conn.recv()
@@ -21,6 +23,7 @@ if __name__ == '__main__':
             child_conn.close()
             if len(input_time[0]) == 20:
                 yout, state, time = model(input_time[1], input_time[0], state, plot=True)
+                print(state)
                 input_time = [[], []]
         except:
             # print(sys.exc_info())  # use when debugging

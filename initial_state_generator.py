@@ -12,6 +12,8 @@ def state(danger=False):
     If not in danger mode, then at least one of the states must be to the extremes.
     """
 
+    # TODO: Change the states to be close to system equilibrium
+
     if not danger:
         f_vel = random.randint(260, 320)  # typical cruising speed of 293m/s
         v_vel = random.randint(-12, 12)  # typical descent speed of 9m/s
