@@ -48,11 +48,14 @@ def model(time, inputs, state, plot=False):
         y0 = [z[0] for z in yout]
         y1 = [z[1] for z in yout]
         y2 = [z[2] for z in yout]
-        plot0 = plt.figure(1)
+
+        ax1 = plt.subplot(311)
         plt.plot(time, y0)
-        plot1 = plt.figure(2)
+
+        ax2 = plt.subplot(312, sharex=ax1)
         plt.plot(time, y1)
-        plot2 = plt.figure(3)
+
+        ax3 = plt.subplot(313, sharex=ax1)
         plt.plot(time, y2)
 
         plt.show(block=False)  # needed so that it the rest of the program can run

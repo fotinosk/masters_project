@@ -5,6 +5,8 @@ from multiprocessing import Process, Pipe
 from state_space_model import model
 from initial_state_generator import state
 import sys
+import warnings
+warnings.filterwarnings("ignore")
 
 if __name__ == '__main__':
     parent_conn, child_conn = Pipe()
