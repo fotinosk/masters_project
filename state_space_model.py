@@ -10,7 +10,7 @@ import numpy as np
 
 A = [[0, 1, 0, -3],
      [0, -3, 0.5, 0],
-     [1, -10, 4, 0],
+     [1, -10, -4, 0],
      [0, 0, 1, 0]]
 
 B = [[0, 1],
@@ -34,27 +34,30 @@ sign = signal.lti(A, B, C, D)
 # inputs and timestamps and outputs the output and state
 
 
-def model(time, inputs, state):
+def model(time, inputs, state, plot=False):
     """
+     :param plot: If true then generate plots
      :param time: Array containing the time intervals
      :param inputs: Array containing the inputs
      :param state: Array containing the state
-     :return: outputs and last state, plot(?)
+     :return: outputs and last state
      """
     t, yout, xout = sign.output(inputs, time, X0=state)
 
-    # y0 = [z[0] for z in yout]
-    # y1 = [z[1] for z in yout]
-    # y2 = [z[2] for z in yout]
-    #
-    # plot0 = plt.figure(1)
-    # plt.plot(time, y0)
-    # plot1 = plt.figure(2)
-    # plt.plot(time, y1)
-    # plot2 = plt.figure(3)
-    # plt.plot(time, y2)
+    if plot:
+        y0 = [z[0] for z in yout]
+        y1 = [z[1] for z in yout]
+        y2 = [z[2] for z in yout]
+        plot0 = plt.figure(1)
+        plt.plot(time, y0)
+        plot1 = plt.figure(2)
+        plt.plot(time, y1)
+        plot2 = plt.figure(3)
+        plt.plot(time, y2)
 
-    plt.show(block=False)  # needed so that it the rest of the program can run
-    plt.pause(0.05)
+        plt.show(block=False)  # needed so that it the rest of the program can run
+        plt.pause(0.05)
+
+    # print(yout, xout, time, sep='\n')
 
     return yout, xout[-1], time
