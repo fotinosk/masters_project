@@ -38,7 +38,6 @@ def model(time, inputs, state, plot=False):
      :param state: Array containing the state
      :return: outputs and last state
      """
-    print('in state', state)
     # t, yout, xout = sign.output(U=inputs, T=time, X0=state)
     yout, t, xout = lsim(sys, U=inputs, T=time, X0=state)
 
@@ -48,13 +47,19 @@ def model(time, inputs, state, plot=False):
         y2 = [z[2] for z in yout]
 
         ax1 = plt.subplot(311)
-        plt.plot(time, y0)
+        # plt.plot(time, y0)
+        ax1.set_ylabel('Pitch Rate')
+        plt.scatter(time, y0, s=2)
 
         ax2 = plt.subplot(312, sharex=ax1)
-        plt.plot(time, y1)
+        # plt.plot(time, y1)
+        ax2.set_ylabel('Pitch Angle')
+        plt.scatter(time, y1, s=2)
 
         ax3 = plt.subplot(313, sharex=ax1)
-        plt.plot(time, y2)
+        # plt.plot(time, y2)
+        ax3.set_ylabel('Vertical Acceleration')
+        plt.scatter(time, y2, s=2)
 
         plt.show(block=False)  # needed so that it the rest of the program can run
         plt.pause(0.05)
