@@ -3,7 +3,7 @@ Module for user controlled input to the model.
 User constantly inputs data using slider and output is plotted on graph.
 """
 
-import control
+from control.matlab import *
 from scipy import signal
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,11 +26,8 @@ D = [[0, 0],
      [0, 0],
      [0, 0]]
 
-sign = signal.lti(A, B, C, D)
-
-
-# print(sign.output([[1, 1], [1, 1], [1, 1]], [1, 2, 3]))
-# inputs and timestamps and outputs the output and state
+# sign = signal.lti(A, B, C, D)
+sys = StateSpace(A, B, C, D)
 
 
 def model(time, inputs, state, plot=False):
@@ -41,7 +38,9 @@ def model(time, inputs, state, plot=False):
      :param state: Array containing the state
      :return: outputs and last state
      """
-    t, yout, xout = sign.output(inputs, time, X0=state)
+    print('in state', state)
+    # t, yout, xout = sign.output(U=inputs, T=time, X0=state)
+    yout, t, xout = lsim(sys, U=inputs, T=time, X0=state)
 
     if plot:
         y0 = [z[0] for z in yout]
@@ -59,7 +58,5 @@ def model(time, inputs, state, plot=False):
 
         plt.show(block=False)  # needed so that it the rest of the program can run
         plt.pause(0.05)
-
-    # print(yout, xout, time, sep='\n')
 
     return yout, xout[-1], time
