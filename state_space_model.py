@@ -7,6 +7,7 @@ from control.matlab import *
 from scipy import signal
 import matplotlib.pyplot as plt
 import numpy as np
+from actuator import Actuator
 
 A = [[0, 1, 0, -3],
      [0, -3, 0.5, 0],
@@ -29,6 +30,11 @@ D = [[0, 0],
 # sign = signal.lti(A, B, C, D)
 sys = StateSpace(A, B, C, D)
 
+input_time_delays = [0.1, 3.5]
+dt = 0.05  # must be the same as that used in the user input or the RL model
+
+actuator = Actuator(input_time_delays, dt)
+
 
 def model(time, inputs, state, plot=False):
     """
@@ -38,6 +44,8 @@ def model(time, inputs, state, plot=False):
      :param state: Array containing the state
      :return: outputs and last state
      """
+    inputs = actuator.io(inputs)  # delays inputs
+
     # t, yout, xout = sign.output(U=inputs, T=time, X0=state)
     yout, t, xout = lsim(sys, U=inputs, T=time, X0=state)
 
