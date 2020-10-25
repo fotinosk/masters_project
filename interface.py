@@ -21,7 +21,7 @@ if __name__ == '__main__':
             input_time[0].append([received[0], received[1]]), input_time[1].append(received[2])
             child_conn.close()
             if len(input_time[0]) == 20:
-                yout, state, time = model(input_time[1], input_time[0], state, plot=True)
+                yout, state, time = model(input_time[1], input_time[0], state, plot=False)
                 input_time = [[], []]
         except:
             # print(sys.exc_info())  # use when debugging
