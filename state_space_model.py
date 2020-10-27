@@ -46,7 +46,7 @@ def model(time, inputs, state, plot=False):
      """
     inputs = actuator.io(inputs)  # delays inputs
 
-    # t, yout, xout = sign.output(U=inputs, T=time, X0=state)
+    # t, yout, xout = sign.output(U=inputs, T=time, X0=state) 
     yout, t, xout = lsim(sys, U=inputs, T=time, X0=state)
 
     if plot:
