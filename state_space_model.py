@@ -7,7 +7,9 @@ from control.matlab import *
 from scipy import signal
 import matplotlib.pyplot as plt
 import numpy as np
+from lag_actuator import LaggingActuator
 from actuator import Actuator
+
 
 A = [[0, 1, 0, -3],
      [0, -3, 0.5, 0],
@@ -33,7 +35,8 @@ sys = StateSpace(A, B, C, D)
 input_time_delays = [0.1, 3.5]
 dt = 0.05  # must be the same as that used in the user input or the RL model
 
-actuator = Actuator(input_time_delays, dt)
+# actuator = Actuator(input_time_delays, dt, initial_inputs=[1,3])
+actuator = LaggingActuator(input_time_delays, dt, output_dt=dt)
 
 
 def model(time, inputs, state, plot=False):

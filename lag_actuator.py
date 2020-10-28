@@ -5,7 +5,6 @@ For some reason the output is scaled by 5
 
 import numpy as np
 from operator import add
-import matplotlib.pyplot as plt
 
 
 def exp_convolved_with_step(dt, time_lag, pulse_height, t):
@@ -19,7 +18,11 @@ def exp_convolved_with_step(dt, time_lag, pulse_height, t):
 
 
 class LaggingActuator:
-    """Actuator with lag"""
+    """Actuator with lag
+
+    Note: The dt has to be equal to output_dt otherwise there will be more outputs per unit time that inupts,
+    causing the system to destabilize
+    """
 
     def __init__(self, tau, dt, output_dt):
         self.tau = tau  # array
@@ -50,9 +53,7 @@ class LaggingActuator:
     def io(self, u):
         """Takes input array and outputs output array with time increment of output_dt"""
 
-        # TODO: Implement method to handle a list of lists of inputs
-        #   and also to rescale the output, so it's in intervals of dt,
-        #   not output_dt
+        # TODO: Rescale outputs to be at the dt interval not output_dt
 
         output = []
 
