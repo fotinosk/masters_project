@@ -54,9 +54,20 @@ class LaggingActuator:
         #   and also to rescale the output, so it's in intervals of dt,
         #   not output_dt
 
+        output = []
+
         if isinstance(u[0], list):
             # ie multiple inputs as a list of lists => [[a,b],[c,d],...]
-            pass
+            for inp in u:
+                outp = []
+                for index in range(len(inp)):
+                    response = self.lag_response(pulse_height=inp[index], time_lag=self.tau[index])
+                    response = response[::-1]
+                    self.lag_queue[index] = list(map(add, self.lag_queue[index], response))
+                    self.lag_queue[index] = [0] + self.lag_queue[index]
+                    outp.append(self.lag_queue[index].pop(-1))
+                output.append(outp)
+            return output
 
         for i in range(len(u)):
             response = self.lag_response(pulse_height=u[i], time_lag=self.tau[i])
@@ -65,9 +76,6 @@ class LaggingActuator:
 
             self.lag_queue[i] = list(map(add, self.lag_queue[i], response))
             self.lag_queue[i] = [0] + self.lag_queue[i]  # sliding rule
-
-        output = []
-        for i in range(len(u)):
             output.append(self.lag_queue[i].pop(-1))
 
         return output
