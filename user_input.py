@@ -15,11 +15,11 @@ time = 0.00
 def user_input(conn):
     a_min = -math.pi  # the minimial value of the paramater a
     a_max = math.pi  # the maximal value of the paramater a
-    a_init = 1  # the value of the parameter a to be used initially, when the graph is created
+    a_init = 0  # the value of the parameter a to be used initially, when the graph is created
 
     b_min = - 50
     b_max = 200
-    b_init = 3
+    b_init = 0
 
     dt = 0.05
 

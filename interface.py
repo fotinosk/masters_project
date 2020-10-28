@@ -14,7 +14,7 @@ if __name__ == '__main__':
     p.start()
     input_time = [[], []]
     # state = state(danger=False)
-    state = [1, 0, 0, 1]
+    state = [0, 0, 0, 0]
     while True:
         try:
             received = parent_conn.recv()

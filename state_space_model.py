@@ -35,7 +35,7 @@ sys = StateSpace(A, B, C, D)
 input_time_delays = [0.1, 3.5]
 dt = 0.05  # must be the same as that used in the user input or the RL model
 
-# actuator = Actuator(input_time_delays, dt, initial_inputs=[1,3])
+# actuator = Actuator(input_time_delays, dt, initial_inputs=[0, 0])
 actuator = LaggingActuator(input_time_delays, dt, output_dt=dt)
 
 
