@@ -53,8 +53,6 @@ class LaggingActuator:
     def io(self, u):
         """Takes input array and outputs output array with time increment of output_dt"""
 
-        # TODO: Rescale outputs to be at the dt interval not output_dt
-
         output = []
 
         if isinstance(u[0], list):
@@ -80,3 +78,22 @@ class LaggingActuator:
             output.append(self.lag_queue[i].pop(-1))
 
         return output
+
+# Uncomment for demonstration purposes
+
+"""
+a = LaggingActuator([0.1, 3.5], 0.05, 0.05)
+x = [[0, 0] for i in range(499)]
+x = [[10, 10]] + x
+
+import matplotlib.pyplot as plt
+t = np.linspace(0, 25, num=500)
+
+y = a.io(x)
+y0 = [i[0] for i in y]
+y1 = [i[1] for i in y]
+
+plt.plot(t, y0)
+plt.plot(t, y1)
+plt.show()
+"""
