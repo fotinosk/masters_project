@@ -14,8 +14,8 @@ if __name__ == '__main__':
     p = Process(target=user_input, args=(child_conn,))
     p.start()
     input_time = [[], []]
-    # state = state(danger=False)
-    state = [0, 0, 0, 0]
+    state = state(danger=False)
+    # state = [0, 0, 0, 0, 0, 0]
     while True:
         try:
             received = parent_conn.recv()
