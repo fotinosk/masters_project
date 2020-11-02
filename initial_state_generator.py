@@ -21,18 +21,18 @@ def state(danger=False):
     """
 
     if not danger:
-        f_vel = 1 + (random.random()-0.5) * 0.2     # 0.9 - 1.1
+        f_vel = (random.random()-0.5) * 0.2         # -0.2 - 0.2
         v_vel = (random.random()-0.5) * 0.4         # -0.2 - 0.2
         p_rate = (random.random()-0.5) * 0.2        # -0.1 - 0.1
-        p_angle = 1 + (random.random()-0.5) * 0.3   # 0.7 - 1.3
+        p_angle = (random.random()-0.5) * 0.3       # -0.3 - 0.3
         el_angle = 0
         thrust = 0
 
     else:
-        f_vel = 1 + (random.random()-0.5) * 0.4     # 0.6 - 1.4
+        f_vel = (random.random()-0.5) * 0.4         # -0.4 - 0.4
         v_vel = (random.random()-0.5)               # -0.5 - 0.5
         p_rate = (random.random()-0.5) * 0.3        # -0.2 - 0.2
-        p_angle = 1 + (random.random()-0.5) * 0.5   # 0.5 - 1.5
+        p_angle = (random.random()-0.5) * 0.5       # -0.5 - 0.5
         el_angle = 0
         thrust = 0
 
