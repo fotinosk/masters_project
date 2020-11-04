@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from collections import namedtuple
 from itertools import count
 from PIL import Image
+from flight import Flight
 
 import torch
 import torch.nn as nn
@@ -244,8 +245,7 @@ Then, we sample an action, execute it, observe the next screen and the reward (a
 When the episode ends (our model fails), we restart the loop.
 """
 
-# TODO: Implement some sort of enviroment, so it can be rendered and reset
-env = None
+env = Flight()
 
 num_episodes = 50
 for i_episode in range(num_episodes):
@@ -286,7 +286,7 @@ for i_episode in range(num_episodes):
 
 print('Complete')
 env.render()
-env.close()
+# env.close()
 plt.ioff()
 plt.show()
 

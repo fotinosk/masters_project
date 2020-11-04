@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from model_parameters import A, B, C, D, dt
 import numpy as np
 
+# TODO: Implement both inputs (actions) and outputs
 
 class Flight:
     """
@@ -31,8 +32,13 @@ class Flight:
 
     def reset(self):
         """Reset the flight"""
+
         self.t = 0
         self.state = state(self.danger)
+        self.yout = None
+        self.state = state(self.danger)
+        self.last_input = [0, 0]
+        self.track_outs = []
 
     def plot(self):
         """Plot the results"""
@@ -56,8 +62,6 @@ class Flight:
         plt.scatter(timeline, y2, s=2)
 
         plt.show()
-        # plt.show(block=False)  # needed so that it the rest of the program can run
-        # plt.pause(0.05)
 
     def io(self, inputs):
         """Input Output for the system"""
