@@ -19,10 +19,6 @@ from wrappers.normalized_actions import NormalizedActions
 logger = logging.getLogger('train')
 logger.setLevel(logging.INFO)
 
-# Libdom raises an error if this is not set to true on Mac OSX
-# see https://github.com/openai/spinningup/issues/16 for more information
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-
 # Parse given arguments
 # gamma, tau, hidden_size, replay_size, batch_size, hidden_size are taken from the original paper
 parser = argparse.ArgumentParser()
@@ -39,7 +35,7 @@ parser.add_argument("--save_dir", default="./saved_models/",
                     help="Dir. path to save and load a model (default: ./saved_models/)")
 parser.add_argument("--seed", default=0, type=int,
                     help="Random seed (default: 0)")
-parser.add_argument("--timesteps", default=1e4, type=int,
+parser.add_argument("--timesteps", default=1e2, type=int,
                     help="Num. of total timesteps of training (default: 1e6)")
 parser.add_argument("--batch_size", default=64, type=int,
                     help="Batch size (default: 64; OpenAI: 128)")
@@ -69,12 +65,8 @@ if __name__ == "__main__":
 
     # Create the env
     kwargs = dict()
-    if args.env == 'RoboschoolInvertedPendulumSwingup-v1':
-        # 'swingup=True' must be passed as an argument
-        # See pull request 'https://github.com/openai/roboschool/pull/192'
-        kwargs['swingup'] = True
     env = gym.make(args.env, **kwargs)
-    env = NormalizedActions(env)
+    # env = NormalizedActions(env)
 
     # Define the reward threshold when the task is solved (if existing) for model saving
     reward_threshold = gym.spec(args.env).reward_threshold if gym.spec(
@@ -139,6 +131,7 @@ if __name__ == "__main__":
             action = agent.calc_action(state, ou_noise)
             next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
             print(next_state, reward, done)
+            # print(next_state, reward, done)
             timestep += 1
             epoch_return += reward
 
