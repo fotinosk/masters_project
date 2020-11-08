@@ -19,7 +19,7 @@ logger.addHandler(logging.StreamHandler())
 
 # Parse given arguments
 parser = argparse.ArgumentParser()
-parser.add_argument("--env", default="boeing-safe-v0",
+parser.add_argument("--env", default="boeing-danger-v0",
                     help="Env. on which the agent should be trained")
 parser.add_argument("--render", default="True", help="Render the steps")
 parser.add_argument("--seed", default=0, help="Random seed")
@@ -48,7 +48,9 @@ if __name__ == "__main__":
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
+    # Use checkpoint for safe to train danger
     checkpoint_dir = args.save_dir + args.env
+
 
     agent = DDPG(gamma,
                  tau,
@@ -69,8 +71,8 @@ if __name__ == "__main__":
         state = torch.Tensor([env.reset()]).to(device)
         episode_return = 0
         while True:
-            if args.render:
-                env.render()
+            # if args.render:
+            #     env.render()
 
             action = agent.calc_action(state, action_noise=None)
             q_value = agent.critic(state, action)
@@ -82,6 +84,7 @@ if __name__ == "__main__":
             step += 1
 
             if done:
+                env.render()
                 logger.info(episode_return)
                 returns.append(episode_return)
                 break

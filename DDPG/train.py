@@ -22,7 +22,7 @@ logger.setLevel(logging.INFO)
 # Parse given arguments
 # gamma, tau, hidden_size, replay_size, batch_size, hidden_size are taken from the original paper
 parser = argparse.ArgumentParser()
-parser.add_argument("--env", default="boeing-safe-v0",
+parser.add_argument("--env", default="boeing-danger-v0",
                     help="the environment on which the agent should be trained ")
 parser.add_argument("--render_train", default=False, type=bool,
                     help="Render the training steps (default: False)")
