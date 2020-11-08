@@ -130,8 +130,7 @@ if __name__ == "__main__":
 
             action = agent.calc_action(state, ou_noise)
             next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
-            print(next_state, reward, done)
-            # print(next_state, reward, done)
+            print(next_state, reward, done, _)
             timestep += 1
             epoch_return += reward
 
@@ -217,3 +216,6 @@ if __name__ == "__main__":
     logger.info('Saved model at endtime {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
     logger.info('Stopping training at {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
     env.close()
+
+# TODO: Model always closes at the minimum number of runs, meaning that it is not working as it should
+#   this is probably an issue with the reward function in the enviroment
