@@ -23,8 +23,7 @@ logger.setLevel(logging.INFO)
 # gamma, tau, hidden_size, replay_size, batch_size, hidden_size are taken from the original paper
 parser = argparse.ArgumentParser()
 parser.add_argument("--env", default="boeing-safe-v0",
-                    help="the environment on which the agent should be trained "
-                         "(Default: RoboschoolInvertedPendulumSwingup-v1)")
+                    help="the environment on which the agent should be trained ")
 parser.add_argument("--render_train", default=False, type=bool,
                     help="Render the training steps (default: False)")
 parser.add_argument("--render_eval", default=False, type=bool,
@@ -130,7 +129,7 @@ if __name__ == "__main__":
 
             action = agent.calc_action(state, ou_noise)
             next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
-            print(next_state, reward, done, _)
+            print(done, _)
             timestep += 1
             epoch_return += reward
 
@@ -167,6 +166,7 @@ if __name__ == "__main__":
 
         # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
         if timestep >= 1000 * t:
+            print('Epoch:', epoch)
             t += 1
             test_rewards = []
             for _ in range(args.n_test_cycles):
@@ -179,6 +179,7 @@ if __name__ == "__main__":
                     action = agent.calc_action(state)  # Selection without noise
 
                     next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
+                    print(done, _)
                     test_reward += reward
 
                     next_state = torch.Tensor([next_state]).to(device)
@@ -216,6 +217,3 @@ if __name__ == "__main__":
     logger.info('Saved model at endtime {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
     logger.info('Stopping training at {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
     env.close()
-
-# TODO: Model always closes at the minimum number of runs, meaning that it is not working as it should
-#   this is probably an issue with the reward function in the enviroment
