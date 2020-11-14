@@ -10,9 +10,8 @@ class NormalizedActions(gym.ActionWrapper):
         :param action:
         :return: normalized action
         """
-        action = (action + 1) / 2  # [-1, 1] => [0, 1]
-        action *= (self.action_space.high - self.action_space.low)
-        action += self.action_space.low
+        # take from [-a, a] to [-1, 1]
+        action = action / self.action_space.high
         return action
 
     def reverse_action(self, action):
@@ -21,7 +20,5 @@ class NormalizedActions(gym.ActionWrapper):
         :param action:
         :return:
         """
-        action -= self.action_space.low
-        action /= (self.action_space.high - self.action_space.low)
-        action = action * 2 - 1
+        action = action * self.action_space.high
         return action

@@ -51,6 +51,8 @@ if __name__ == "__main__":
     # Use checkpoint for safe to train danger
     checkpoint_dir = args.save_dir + args.env
 
+    # f = open('outptu.txt', 'a')
+
 
     agent = DDPG(gamma,
                  tau,
@@ -81,14 +83,20 @@ if __name__ == "__main__":
 
             state = torch.Tensor([next_state]).to(device)
 
+            # f.write(f"Action {action}, State: {state}")
+
             step += 1
 
             if done:
                 env.render()
                 logger.info(episode_return)
                 returns.append(episode_return)
+                # f.write(f"Episode return {episode_return}")
                 break
 
+    # f.close()
     mean = np.mean(returns)
     variance = np.var(returns)
     logger.info("Score (on 100 episodes): {} +/- {}".format(mean, variance))
+
+# Todo: Actions are between 1 and -1, maybe fix
