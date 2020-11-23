@@ -26,24 +26,19 @@ class Agent(object):
         self.critic = Critic(self.nb_states, self.nb_actions, args.init_w)
         self.critic_target = Critic(self.nb_states, self.nb_actions, args.init_w)
 
-        hard_update(self.actor_target, self.actor) # Make sure target is with the same weight
+        hard_update(self.actor_target, self.actor)
         hard_update(self.critic_target, self.critic)
         
-        #Create replay buffer
         self.random_process = OrnsteinUhlenbeckProcess(size=nb_actions, theta=args.ou_theta, mu=args.ou_mu, sigma=args.ou_sigma)
-
-        # Hyper-parameters
         self.batch_size = args.bsize
         self.trajectory_length = args.trajectory_length
         self.tau = args.tau
         self.discount = args.discount
         self.depsilon = 1.0 / args.epsilon
 
-        # 
         self.epsilon = 1.0
         self.is_training = True
 
-        # 
         if USE_CUDA: self.cuda()
 
     def eval(self):
@@ -70,6 +65,7 @@ class Agent(object):
 
     def reset_lstm_hidden_state(self, done=True):
         self.actor.reset_lstm_hidden_state(done)
+        self.critic.reset_lstm_hidden_state(done)
 
     def reset(self):
         self.random_process.reset_states()

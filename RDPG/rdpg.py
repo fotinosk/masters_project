@@ -73,7 +73,7 @@ class RDPG(object):
                 # self.env.render()
 
                 # agent observe and update policy
-                self. .append(state0, action, reward, done)
+                self.memory.append(state0, action, reward, done)
 
                 # update 
                 step += 1
@@ -86,6 +86,7 @@ class RDPG(object):
                     self.agent.reset_lstm_hidden_state(done=False)
                     trajectory_steps = 0
                     if step > self.warmup:
+                        prLightPurple('Udating...')
                         self.update_policy()
 
                 # [optional] save intermideate model
@@ -102,6 +103,7 @@ class RDPG(object):
                     episode_reward = 0.
                     episode += 1
                     self.agent.reset_lstm_hidden_state(done=True)
+
                     break
 
             # [optional] evaluate
@@ -138,17 +140,15 @@ class RDPG(object):
             # reward = np.stack((trajectory.reward for trajectory in experiences[t]))
             state1 = np.stack((trajectory.state0 for trajectory in experiences[t+1]))
 
+
             target_action, (target_hx, target_cx) = self.agent.actor_target(to_tensor(state1, volatile=True), (target_hx, target_cx))
-            next_q_value = self.agent.critic_target([
-                to_tensor(state1, volatile=True),
-                target_action
-            ])
+            next_q_value, (target_hx, target_cx) = self.agent.critic_target([to_tensor(state1, volatile=True),target_action], (target_hx, target_cx))
             next_q_value.volatile=False
 
             target_q = to_tensor(reward) + self.discount*next_q_value
 
             # Critic update
-            current_q = self.agent.critic([ to_tensor(state0), to_tensor(action) ])
+            current_q, (hx, cx)= self.agent.critic([ to_tensor(state0), to_tensor(action)], (hx, cx))
 
             # value_loss = criterion(q_batch, target_q_batch)
             value_loss = F.smooth_l1_loss(current_q, target_q)
@@ -157,7 +157,7 @@ class RDPG(object):
 
             # Actor update
             action, (hx, cx) = self.agent.actor(to_tensor(state0), (hx, cx))
-            policy_loss = -self.agent.critic([to_tensor(state0),action])
+            policy_loss = -self.agent.critic([to_tensor(state0), action], (hx, cx))[0]
             policy_loss /= len(experiences) # divide by trajectory length
             policy_loss_total += policy_loss.mean()
 
@@ -176,7 +176,7 @@ class RDPG(object):
 
             policy_loss = policy_loss.mean()
 
-            value_loss.backward()
+            value_loss.backward(retain_graph=True)
             policy_loss.backward()
 
             self.critic_optim.step()
@@ -197,7 +197,6 @@ class RDPG(object):
         # Target update
         soft_update(self.agent.actor_target, self.agent.actor, self.tau)
         soft_update(self.agent.critic_target, self.agent.critic, self.tau)
-
 
     def test(self, num_episodes, model_path, visualize=True, debug=False):
         if self.agent.load_weights(model_path) == False:
