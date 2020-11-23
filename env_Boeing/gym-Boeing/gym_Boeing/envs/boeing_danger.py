@@ -74,11 +74,14 @@ class BoeingDanger(gym.Env):
     def render(self, mode='human'):
         # self.flight.plot()
         x = list(np.arange(0, 0.05*len(self.past_sq_err), 0.05))
-        plt.plot(x, self.past_sq_err)
-        plt.xlabel('Time (sec)')
-        plt.ylabel('Absolute Value of Deviations')
-        plt.show(block=False)
-        plt.pause(0.0001)
+        try:
+            plt.plot(x, self.past_sq_err)
+            plt.xlabel('Time (sec)')
+            plt.ylabel('Absolute Value of Deviations')
+            plt.show(block=False)
+            plt.pause(0.0001)
+        except Exception as e:
+            print(f"Run into known Matplotlib bug, can't show plot. \n Error {e}")
 
     def close(self):
         self.done = True

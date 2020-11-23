@@ -56,7 +56,6 @@ class BoeingSafe(gym.Env):
         if sq_error < control_acc:
             reward += 10
         if len(self.past_sq_err) > control_len and max(self.past_sq_err[-control_len:]) < control_acc:
-            # print(f"Actions taken: {len(self.past_sq_err)}, Last Squared Error: {sq_error}")
             self.done = True
             reward = 100
         reward -= sq_error
@@ -68,17 +67,19 @@ class BoeingSafe(gym.Env):
         self.observation = [0, 0, 0]
         self.past_sq_err = []
         self.done = False
-        # print('Flight has been reset!')
         return self.observation
 
     def render(self, mode='human'):
         # self.flight.plot()
         x = list(np.arange(0, 0.05*len(self.past_sq_err), 0.05))
-        plt.plot(x, self.past_sq_err)
-        plt.xlabel('Time (sec)')
-        plt.ylabel('Absolute Value of Deviations')
-        plt.show(block=False)
-        plt.pause(0.0001)
+        try:
+            plt.plot(x, self.past_sq_err)
+            plt.xlabel('Time (sec)')
+            plt.ylabel('Absolute Value of Deviations')
+            plt.show(block=False)
+            plt.pause(0.0001)
+        except Exception as e:
+            print(f"Run into known Matplotlib bug, can't show plot. \n Error {e}")
 
     def close(self):
         self.done = True

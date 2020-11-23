@@ -54,8 +54,10 @@ class RDPG(object):
         state0 = None
         while step < num_iterations:
             episode_steps = 0
+            if debug: prYellow(f'Starting episode {episode}...')
             while episode_steps < self.max_episode_length:
                 # reset if it is the start of episode
+                prLightPurple(f'Step: {step}| Episode Steps: {episode_steps}| Episode Reward: {episode_reward}| Udating...')
                 if state0 is None:
                     state0 = deepcopy(self.env.reset())
                     self.agent.reset()
@@ -86,7 +88,6 @@ class RDPG(object):
                     self.agent.reset_lstm_hidden_state(done=False)
                     trajectory_steps = 0
                     if step > self.warmup:
-                        prLightPurple('Udating...')
                         self.update_policy()
 
                 # [optional] save intermideate model
@@ -94,17 +95,20 @@ class RDPG(object):
                     if debug: prLightPurple('Saving Intermideate Model...')
                     self.agent.save_model(checkpoint_path)
 
-                if done: # end of episode
+                if episode_steps == self.max_episode_length:
+                    self.env.render()
+                    if debug: prRed("Episode isn't done, taking too long, restarting")
+                    done = True
+
+                if done: # end of episode, reset
                     self.env.render()
                     if debug: prGreen('#{}: episode_reward:{} steps:{}'.format(episode,episode_reward,step))
-
-                    # reset
                     state0 = None
                     episode_reward = 0.
                     episode += 1
                     self.agent.reset_lstm_hidden_state(done=True)
-
                     break
+            print('freedom')
 
             # [optional] evaluate
             if self.evaluate is not None and self.validate_steps > 0 and step % self.validate_steps == 0:
