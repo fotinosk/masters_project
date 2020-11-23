@@ -12,7 +12,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from ddpg import DDPG
 from utils.noise import OrnsteinUhlenbeckActionNoise
-from utils.replay_memory import ReplayMemory, Transition
+from utils.replay_memory import ReplayMemory, Transition, ReplayBufferLSTM2
 from wrappers.normalized_actions import NormalizedActions
 
 # Create logger
@@ -94,6 +94,7 @@ if __name__ == "__main__":
 
     # Initialize replay memory
     memory = ReplayMemory(int(args.replay_size))
+    memory = ReplayBufferLSTM2(int(args.replay_size))
 
     # Initialize OU-Noise
     nb_actions = env.action_space.shape[-1]

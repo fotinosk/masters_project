@@ -1,0 +1,4 @@
+https://github.com/fshamshirdar/pytorch-rdpg
+
+this model doesn't implment L2 weight decay of batch normalization, maybe add
+different hidden states too

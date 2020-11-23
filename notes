@@ -1,9 +1,0 @@
-Only difference between my DQN and the one in the turtorial is that the turtorial uses cartpole and the input
-state is an image. Actions is just left or right
-
-Implement enviroment reset?
-
-Typical DQN computes V_s(t+1) for all actions, in my case, this will be very computationally expensive, some
-sort of optimization needed
-
-Add LSTM layer

@@ -25,11 +25,6 @@ class Actor(nn.Module):
         self.num_outputs = action_space.shape[0]
         self.batch_size = 64  # change later?
 
-        # for the lstm
-        # hidden_state = torch.randn(1, 1, hidden_size[2])
-        # cell_state = torch.randn(1, 1, hidden_size[2])
-        # self.hidden = (hidden_state, cell_state)
-
         # Layer 1
         self.linear1 = nn.Linear(num_inputs, hidden_size[0])
         self.ln1 = nn.LayerNorm(hidden_size[0])
