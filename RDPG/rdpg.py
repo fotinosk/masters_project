@@ -146,8 +146,8 @@ class RDPG(object):
 
 
             target_action, (target_hx, target_cx) = self.agent.actor_target(to_tensor(state1, volatile=True), (target_hx, target_cx))
-            next_q_value, (target_hx, target_cx) = self.agent.critic_target([to_tensor(state1, volatile=True),target_action], (target_hx, target_cx))
-            next_q_value.volatile=False
+            next_q_value, (target_hx, target_cx) = self.agent.critic_target([to_tensor(state1, volatile=False),target_action], (target_hx, target_cx))
+            # next_q_value.volatile=False
 
             target_q = to_tensor(reward) + self.discount*next_q_value
 
@@ -164,16 +164,6 @@ class RDPG(object):
             policy_loss = -self.agent.critic([to_tensor(state0), action], (hx, cx))[0]
             policy_loss /= len(experiences) # divide by trajectory length
             policy_loss_total += policy_loss.mean()
-
-            # update per trajectory
-            # self.agent.critic.zero_grad()
-            # value_loss.backward()
-            # self.critic_optim.step()
-
-            # self.agent.actor.zero_grad()
-            # policy_loss = policy_loss.mean()
-            # policy_loss.backward()
-            # self.actor_optim.step()
 
             self.agent.critic.zero_grad()
             self.agent.actor.zero_grad()
