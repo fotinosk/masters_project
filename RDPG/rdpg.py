@@ -91,7 +91,7 @@ class RDPG(object):
                         self.update_policy()
 
                 # [optional] save intermideate model
-                if step % int(num_iterations/3) == 0:
+                if step % 10000 == 0:
                     if debug: prLightPurple('Saving Intermideate Model...')
                     self.agent.save_model(checkpoint_path)
 
@@ -108,7 +108,6 @@ class RDPG(object):
                     episode += 1
                     self.agent.reset_lstm_hidden_state(done=True)
                     break
-            print('freedom')
 
             # [optional] evaluate
             if self.evaluate is not None and self.validate_steps > 0 and step % self.validate_steps == 0:
