@@ -52,6 +52,13 @@ class RDPG(object):
         step = episode = episode_steps = trajectory_steps = 0
         episode_reward = 0.
         state0 = None
+
+        try:
+            self.agent.load_weights(checkpoint_path)
+            if debug: prCyan("Loading training weights")
+        except:
+            prRed("No previews weights found. Starting from scratch")
+
         while step < num_iterations:
             episode_steps = 0
             if debug: prYellow(f'Starting episode {episode}...')
@@ -72,8 +79,6 @@ class RDPG(object):
                 state, reward, done, info = self.env.step(action)
                 state = deepcopy(state)
 
-                # self.env.render()
-
                 # agent observe and update policy
                 self.memory.append(state0, action, reward, done)
 
@@ -91,7 +96,7 @@ class RDPG(object):
                         self.update_policy()
 
                 # [optional] save intermideate model
-                if step % 10000 == 0:
+                if step % 2000 == 0:
                     if debug: prLightPurple('Saving Intermideate Model...')
                     self.agent.save_model(checkpoint_path)
 
