@@ -133,9 +133,13 @@ class RDPG(object):
 
         policy_loss_total = 0
         value_loss_total = 0
+
+        target_cx = Variable(torch.zeros(self.batch_size, 50)).type(FLOAT)
+        target_hx = Variable(torch.zeros(self.batch_size, 50)).type(FLOAT)
+        
         for t in range(len(experiences) - 1): # iterate over episodes
-            target_cx = Variable(torch.zeros(self.batch_size, 50)).type(FLOAT)
-            target_hx = Variable(torch.zeros(self.batch_size, 50)).type(FLOAT)
+            # target_cx = Variable(torch.zeros(self.batch_size, 50)).type(FLOAT)
+            # target_hx = Variable(torch.zeros(self.batch_size, 50)).type(FLOAT)
 
             cx = Variable(torch.zeros(self.batch_size, 50)).type(FLOAT)
             hx = Variable(torch.zeros(self.batch_size, 50)).type(FLOAT)
@@ -159,7 +163,7 @@ class RDPG(object):
             current_q, (hx, cx)= self.agent.critic([ to_tensor(state0), to_tensor(action)], (hx, cx))
 
             # value_loss = criterion(q_batch, target_q_batch)
-            value_loss = F.smooth_l1_loss(current_q, target_q)
+            value_loss = F.mse_loss(current_q, target_q)
             value_loss /= len(experiences) # divide by trajectory length
             value_loss_total += value_loss
 

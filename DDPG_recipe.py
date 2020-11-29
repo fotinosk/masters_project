@@ -650,15 +650,9 @@ while timestep <= 100:
     state = torch.Tensor([env.reset()])
 
     while True:
-        # TODO : sampled action may not be normalized
-        # if epoch == 0 and timestep < warmup:
-        #     action = env.action_space.sample()
-        #     action = torch.Tensor([action])
-        # else:
-        #      action = agent.get_action(state)
         action = agent.get_action(state)
         next_state, reward, done, _ = env.step(action.numpy()[0])
-        print(done, reward, _)
+        print(done, _)
         timestep += 1
         epoch_return += reward
 
@@ -680,10 +674,12 @@ while timestep <= 100:
             epoch_value_loss += value_loss
             epoch_policy_loss += policy_loss
 
-        if done:
-            break
+        if timestep % 2000 == 0:
+            env.render()
 
-        # TODO: implement max ep len here??
+        if done:
+            env.render()
+            break
 
     rewards.append(epoch_return)
     value_losses.append(epoch_value_loss)
