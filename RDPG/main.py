@@ -27,14 +27,14 @@ if __name__ == "__main__":
     parser.add_argument('--discount', default=0.99, type=float, help='')
     parser.add_argument('--bsize', default=64, type=int, help='minibatch size')
     parser.add_argument('--rmsize', default=6000000, type=int, help='memory size')
-    parser.add_argument('--window_length', default=1, type=int, help='')
+    parser.add_argument('--window_length', default=40, type=int, help='')
     parser.add_argument('--tau', default=0.001, type=float, help='moving average for target network')
     parser.add_argument('--ou_theta', default=0.15, type=float, help='noise theta')
     parser.add_argument('--ou_sigma', default=0.2, type=float, help='noise sigma') 
     parser.add_argument('--ou_mu', default=0.0, type=float, help='noise mu') 
-    parser.add_argument('--validate_episodes', default=20, type=int, help='how many episode to perform during validate experiment')
+    parser.add_argument('--validate_episodes', default=2, type=int, help='how many episode to perform during validate experiment')
     parser.add_argument('--max_episode_length', default=5000, type=int, help='')
-    parser.add_argument('--trajectory_length', default=5, type=int, help='')
+    parser.add_argument('--trajectory_length', default=80, type=int, help='')
     parser.add_argument('--validate_steps', default=2000, type=int, help='how many steps to perform a validate experiment')
     parser.add_argument('--debug', dest='debug', action='store_true')
     parser.add_argument('--init_w', default=0.003, type=float, help='') 
@@ -45,7 +45,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    env = NormalizedEnv(gym.make(args.env))
     env = gym.make(args.env)
 
     if args.seed > 0:

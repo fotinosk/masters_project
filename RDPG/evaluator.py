@@ -26,7 +26,6 @@ class Evaluator(object):
             # start episode
             done = False
             while not done:
-                # basic operation, action ,reward, blablabla ...
                 action = policy(observation)
 
                 observation, reward, done, info = env.step(action)

@@ -11,3 +11,8 @@ register(
     id='boeing-danger-v0',
     entry_point='gym_Boeing.envs:BoeingDanger'
 )
+
+register(
+    id='normalized-danger-v0',
+    entry_point='gym_Boeing.envs:NormalizedDanger'
+)

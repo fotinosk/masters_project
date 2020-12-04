@@ -134,15 +134,15 @@ class RDPG(object):
         policy_loss_total = 0
         value_loss_total = 0
 
-        target_cx = Variable(torch.zeros(self.batch_size, 50)).type(FLOAT)
-        target_hx = Variable(torch.zeros(self.batch_size, 50)).type(FLOAT)
+        target_cx = Variable(torch.zeros(self.batch_size, 300)).type(FLOAT)
+        target_hx = Variable(torch.zeros(self.batch_size, 300)).type(FLOAT)
         
         for t in range(len(experiences) - 1): # iterate over episodes
             # target_cx = Variable(torch.zeros(self.batch_size, 50)).type(FLOAT)
             # target_hx = Variable(torch.zeros(self.batch_size, 50)).type(FLOAT)
 
-            cx = Variable(torch.zeros(self.batch_size, 50)).type(FLOAT)
-            hx = Variable(torch.zeros(self.batch_size, 50)).type(FLOAT)
+            cx = Variable(torch.zeros(self.batch_size, 300)).type(FLOAT)
+            hx = Variable(torch.zeros(self.batch_size, 300)).type(FLOAT)
 
             # we first get the data out of the sampled experience
             state0 = np.stack((trajectory.state0 for trajectory in experiences[t]))
