@@ -1,12 +1,7 @@
 import random
 from collections import namedtuple
 
-# Taken from
-# https://github.com/pytorch/tutorials/blob/master/intermediate_source/reinforcement_q_learning.py
-Transition = namedtuple('Transition',
-                        ('state', 'action', 'done', 'next_state', 'reward')
-                        )
-
+Transition = namedtuple('Transition', ('state', 'action', 'done', 'next_state', 'reward'))
 
 class ReplayMemory(object):
 

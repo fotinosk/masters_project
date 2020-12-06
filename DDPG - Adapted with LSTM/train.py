@@ -9,12 +9,9 @@ import gym_Boeing
 import numpy as np
 import torch
 
-from ddpg import DDPG
+from ddpg import DDPG_LSTM
 from utils.noise import OrnsteinUhlenbeckActionNoise
-from utils.replay_memory import ReplayMemory, Transition
-from wrappers.normalized_actions import NormalizedActions
-from trajectory import Trajectory
-from augment import Augment
+from utils.replay_memory import EpisodeMemory
 
 # Parse given arguments
 # gamma, tau, hidden_size, replay_size, batch_size, hidden_size are taken from the original paper
@@ -31,7 +28,7 @@ parser.add_argument("--save_dir", default="./saved_models/",
                     help="Dir. path to save and load a model (default: ./saved_models/)")
 parser.add_argument("--seed", default=0, type=int,
                     help="Random seed (default: 0)")
-parser.add_argument("--timesteps", default=1e6, type=int,
+parser.add_argument("--timesteps", default=1e2, type=int,
                     help="Num. of total timesteps of training (default: 1e6)")
 parser.add_argument("--batch_size", default=64, type=int,
                     help="Batch size (default: 64; OpenAI: 128)")
@@ -49,6 +46,7 @@ parser.add_argument("--n_test_cycles", default=10, type=int,
                     help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
 args = parser.parse_args()
 
+# if gpu is to be used
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 if __name__ == "__main__":
@@ -60,8 +58,6 @@ if __name__ == "__main__":
     kwargs = dict()
     env = gym.make(args.env, **kwargs)
 
-    augment = Augment(state_size=3, action_size=env.action_space.shape[0])
-    num_inputs = len(augment)
 
     # Set random seed for all used libraries where possible
     env.seed(args.seed)
@@ -76,11 +72,12 @@ if __name__ == "__main__":
 
     # Define and build DDPG agent
     hidden_size = tuple(args.hidden_size)
-    agent = DDPG(args.gamma,
+    agent = DDPG_LSTM(args.gamma,
                  args.tau,
                  hidden_size,
-                 num_inputs,
+                 env.observation_space.shape[0],
                  env.action_space,
+                 int(args.replay_size),
                  checkpoint_dir=checkpoint_dir
                  )
 
@@ -96,6 +93,7 @@ if __name__ == "__main__":
     start_step = 0
     # timestep = start_step
     if args.load_model:
+        # Load agent if necessary
         start_step, memory = agent.load_checkpoint()
     timestep = start_step // 10000 + 1
     rewards, policy_losses, value_losses, mean_test_rewards = [], [], [], []
@@ -109,19 +107,11 @@ if __name__ == "__main__":
 
         state = torch.Tensor([env.reset()]).to(device)
         while True:
-            if timestep % 5000 == 0:
+            if args.render_train:
                 env.render()
 
-
-            state = augment(state[0])
-            action = agent.calc_action(state, ou_noise).to(device)
-            next_state, reward, done, _ = env.step(action.cpu().numpy())
-            augment.update(action)
-            # TODO: Turn next state to an augmented state
-
-            next_aug_state = augment.mock_augment(next_state, state, action)
-
-
+            action = agent.calc_action(state, ou_noise)
+            next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
             print(done, _)
             timestep += 1
             epoch_return += reward
@@ -129,9 +119,8 @@ if __name__ == "__main__":
             mask = torch.Tensor([done]).to(device)
             reward = torch.Tensor([reward]).to(device)
             next_state = torch.Tensor([next_state]).to(device)
-            next_aug_state = torch.Tensor([next_aug_state]).to(device)
 
-            memory.push(state, action, mask, next_aug_state, reward)
+            memory.push(state, action, mask, next_state, reward)
 
             state = next_state
 
@@ -141,6 +130,7 @@ if __name__ == "__main__":
             if len(memory) > args.batch_size:
                 transitions = memory.sample(args.batch_size)
                 batch = Transition(*zip(*transitions))
+
                 value_loss, policy_loss = agent.update_params(batch)
 
                 epoch_value_loss += value_loss
@@ -153,6 +143,7 @@ if __name__ == "__main__":
         value_losses.append(epoch_value_loss)
         policy_losses.append(epoch_policy_loss)
 
+        # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
         if timestep >= 1000 * t:
             print('Epoch:', epoch)
             t += 1
@@ -164,7 +155,7 @@ if __name__ == "__main__":
                     if args.render_eval:
                         env.render()
 
-                    action = agent.calc_action(state)
+                    action = agent.calc_action(state)  # Selection without noise
 
                     next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
                     print(done, _)

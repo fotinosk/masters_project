@@ -34,7 +34,8 @@ class Trajectory(object):
         self.memory = []
 
     def reset(self):
-        self.memory = self.mock * self.memory_size
+        # self.memory = self.mock * self.memory_size
+        self.memory = []
 
     def __call__(self, input):
         '''Call the class to get the trajectory'''

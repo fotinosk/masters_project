@@ -1,17 +1,19 @@
 from trajectory import Trajectory
+from augment import Augment
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+a = Augment(3,2)
 
-t = Trajectory(3,2)
+c = torch.tensor([1.,2.,3.]).to(device)
+b = torch.tensor([4.,5.]).to(device)
 
-a = torch.tensor([1,2,3]).to(device)
-b = torch.tensor([4,5]).to(device)
 
 for i in range(50):
-    t(a)
-    # t.archive([a,b,a,i])
+    a(c)
+    a.update(b)
 
-b = t(a) # list on tensors
-print(torch.stack(b))
+print(a(c))
+
+
