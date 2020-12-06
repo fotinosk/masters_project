@@ -117,7 +117,6 @@ if __name__ == "__main__":
             action = agent.calc_action(state, ou_noise).to(device)
             next_state, reward, done, _ = env.step(action.cpu().numpy())
             augment.update(action)
-            # TODO: Turn next state to an augmented state
 
             next_aug_state = augment.mock_augment(next_state, state, action)
 
@@ -159,17 +158,21 @@ if __name__ == "__main__":
             test_rewards = []
             for _ in range(args.n_test_cycles):
                 state = torch.Tensor([env.reset()]).to(device)
+                augment.reset()
                 test_reward = 0
                 while True:
                     if args.render_eval:
                         env.render()
 
+                    state = augment(state[0])
                     action = agent.calc_action(state)
 
-                    next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
+                    next_state, reward, done, _ = env.step(action.cpu().numpy())
+                    augment.update(action)
                     print(done, _)
                     test_reward += reward
 
+                    next_aug_state = augment.mock_augment(next_state, state, action)
                     next_state = torch.Tensor([next_state]).to(device)
 
                     state = next_state
