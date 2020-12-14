@@ -25,4 +25,13 @@ def state(danger=False):
         ds = random.randint(0,4)
         state[ds] += 10 
 
+        if ds == 0:
+            print('Impulse on forward velocity')
+        elif ds == 1:
+            print('Impulse on vertical velocity')
+        elif ds == 2:
+            print('Impulse on pitch rate')
+        elif ds == 3:
+            print('Impulse on pitch angle')
+
     return state

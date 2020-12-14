@@ -1,220 +1,85 @@
-import argparse
-import logging
-import os
-import random
-import time
-
+from networks import Actor,Critic
+from memory import Buffer
+from rdpg import RDPG
 import gym
 import gym_Boeing
-import numpy as np
 import torch
-from torch.utils.tensorboard import SummaryWriter
+import matplotlib.pyplot as plt
 
-from ddpg import DDPG
-from utils.noise import OrnsteinUhlenbeckActionNoise
-from utils.replay_memory import ReplayMemory, Transition, ReplayBufferLSTM2
-from wrappers.normalized_actions import NormalizedActions
+env = gym.make('boeing-danger-v1')
 
-# Create logger
-logger = logging.getLogger('train')
-logger.setLevel(logging.INFO)
+hidden_dim = [80, 100]
+explore_steps = 1000
+batch_size = 64
 
-# Parse given arguments
-# gamma, tau, hidden_size, replay_size, batch_size, hidden_size are taken from the original paper
-parser = argparse.ArgumentParser()
-parser.add_argument("--env", default="boeing-danger-v0",
-                    help="the environment on which the agent should be trained ")
-parser.add_argument("--render_train", default=False, type=bool,
-                    help="Render the training steps (default: False)")
-parser.add_argument("--render_eval", default=False, type=bool,
-                    help="Render the evaluation steps (default: False)")
-parser.add_argument("--load_model", default=False, type=bool,
-                    help="Load a pretrained model (default: False)")
-parser.add_argument("--save_dir", default="./saved_models/",
-                    help="Dir. path to save and load a model (default: ./saved_models/)")
-parser.add_argument("--seed", default=0, type=int,
-                    help="Random seed (default: 0)")
-parser.add_argument("--timesteps", default=1e2, type=int,
-                    help="Num. of total timesteps of training (default: 1e6)")
-parser.add_argument("--batch_size", default=64, type=int,
-                    help="Batch size (default: 64; OpenAI: 128)")
-parser.add_argument("--replay_size", default=1e6, type=int,
-                    help="Size of the replay buffer (default: 1e6; OpenAI: 1e5)")
-parser.add_argument("--gamma", default=0.99,
-                    help="Discount factor (default: 0.99)")
-parser.add_argument("--tau", default=0.001,
-                    help="Update factor for the soft update of the target networks (default: 0.001)")
-parser.add_argument("--noise_stddev", default=0.2, type=int,
-                    help="Standard deviation of the OU-Noise (default: 0.2)")
-parser.add_argument("--hidden_size", nargs=3, default=[400, 300, 300], type=tuple,
-                    help="Num. of units of the hidden layers (default: [400, 300]; OpenAI: [64, 64])")
-parser.add_argument("--n_test_cycles", default=10, type=int,
-                    help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
-args = parser.parse_args()
+memory_size = 1e5
 
-# if gpu is to be used
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-logger.info("Using {}".format(device))
+replaybuffer = Buffer(memory_size)
 
-if __name__ == "__main__":
+agent = RDPG(replaybuffer, env.observation_space, env.action_space, hidden_dim)
 
-    # Define the directory where to save and load models
-    checkpoint_dir = args.save_dir + args.env
-    writer = SummaryWriter('runs/run_1')
+rewards = []
 
-    # Create the env
-    kwargs = dict()
-    env = gym.make(args.env, **kwargs)
-    # env = NormalizedActions(env)
+consequtive_success = 0
 
-    # Define the reward threshold when the task is solved (if existing) for model saving
-    reward_threshold = gym.spec(args.env).reward_threshold if gym.spec(
-        args.env).reward_threshold is not None else np.inf
+while consequtive_success < 64:  # condition for well trained model
+    q_loss_list = []
+    policy_loss_list = []
 
-    # Set random seed for all used libraries where possible
-    env.seed(args.seed)
-    torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
-    random.seed(args.seed)
+    state = env.reset()
 
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(args.seed)
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = False
+    episode_reward = 0
 
-    # Define and build DDPG agent
-    hidden_size = tuple(args.hidden_size)
-    agent = DDPG(args.gamma,
-                 args.tau,
-                 hidden_size,
-                 env.observation_space.shape[0],
-                 env.action_space,
-                 checkpoint_dir=checkpoint_dir
-                 )
+    last_action = env.action_space.sample()
 
-    # Initialize replay memory
-    memory = ReplayMemory(int(args.replay_size))
-    memory = ReplayBufferLSTM2(int(args.replay_size))
+    episode_state = []
+    episode_action = []
+    episode_last_action = []
+    episode_reward = []
+    episode_next_state = []
+    episode_done = []
 
-    # Initialize OU-Noise
-    nb_actions = env.action_space.shape[-1]
-    ou_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(nb_actions),
-                                            sigma=float(args.noise_stddev) * np.ones(nb_actions))
+    hidden_out = (torch.zeros([1, 1, hidden_dim[0]], dtype=torch.float).cuda(), torch.zeros([1, 1, hidden_dim[0]], dtype=torch.float).cuda())
 
-    # Define counters and other variables
-    start_step = 0
-    # timestep = start_step
-    if args.load_model:
-        # Load agent if necessary
-        start_step, memory = agent.load_checkpoint()
-    timestep = start_step // 10000 + 1
-    rewards, policy_losses, value_losses, mean_test_rewards = [], [], [], []
-    epoch = 0
-    t = 0
-    time_last_checkpoint = time.time()
+    for step in range(5001):
+        hidden_in = hidden_out
 
-    # Start training
-    logger.info('Train agent on {} env'.format({env.unwrapped.spec.id}))
-    logger.info('Doing {} timesteps'.format(args.timesteps))
-    logger.info('Start at timestep {0} with t = {1}'.format(timestep, t))
-    logger.info('Start training at {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
+        action, hidden_out = agent.actor.get_action(state, last_action, hidden_in)
 
-    while timestep <= args.timesteps:
-        ou_noise.reset()
-        epoch_return = 0
+        next_state, reward, done, _ = env.step(action)
 
-        state = torch.Tensor([env.reset()]).to(device)
-        while True:
-            if args.render_train:
-                env.render()
+        if step==0:
+            ini_hidden_in = hidden_in
+            ini_hidden_out = hidden_out
 
-            action = agent.calc_action(state, ou_noise)
-            next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
-            print(done, _)
-            timestep += 1
-            epoch_return += reward
+        episode_state.append(state)
+        episode_action.append(action)
+        episode_last_action.append(last_action)
+        episode_reward.append(reward)
+        episode_next_state.append(next_state)
+        episode_done.append(done)  
 
-            mask = torch.Tensor([done]).to(device)
-            reward = torch.Tensor([reward]).to(device)
-            next_state = torch.Tensor([next_state]).to(device)
+        state = next_state
+        last_action = action
 
-            memory.push(state, action, mask, next_state, reward)
+        if len(replaybuffer) > batch_size:
+            print('Now learning')
+            value_loss, policy_loss = agent.update(batch_size)
+            q_loss_list.append(value_loss)
+            policy_loss_list.append(policy_loss)
 
-            state = next_state
+        if done:
+            plt.clf()
+            if step < 4900:
+                consequtive_success += 1
+            else:
+                consequtive_success = 0
+            env.render()
+            print(f"Consequtive succesful episodes: {consequtive_success}")
+            break
 
-            epoch_value_loss = 0
-            epoch_policy_loss = 0
+    replaybuffer.push(ini_hidden_in, ini_hidden_out, episode_state, episode_action, episode_last_action, episode_reward, episode_next_state, episode_done)
+    rewards.append(reward)
 
-            if len(memory) > args.batch_size:
-                transitions = memory.sample(args.batch_size)
-                # Transpose the batch
-                # (see http://stackoverflow.com/a/19343/3343043 for detailed explanation).
-                batch = Transition(*zip(*transitions))
 
-                # Update actor and critic according to the batch
-                value_loss, policy_loss = agent.update_params(batch)
 
-                epoch_value_loss += value_loss
-                epoch_policy_loss += policy_loss
-
-            if done:
-                break
-
-        rewards.append(epoch_return)
-        value_losses.append(epoch_value_loss)
-        policy_losses.append(epoch_policy_loss)
-        writer.add_scalar('epoch/return', epoch_return, epoch)
-
-        # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
-        if timestep >= 1000 * t:
-            print('Epoch:', epoch)
-            t += 1
-            test_rewards = []
-            for _ in range(args.n_test_cycles):
-                state = torch.Tensor([env.reset()]).to(device)
-                test_reward = 0
-                while True:
-                    if args.render_eval:
-                        env.render()
-
-                    action = agent.calc_action(state)  # Selection without noise
-
-                    next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
-                    print(done, _)
-                    test_reward += reward
-
-                    next_state = torch.Tensor([next_state]).to(device)
-
-                    state = next_state
-                    if done:
-                        break
-                test_rewards.append(test_reward)
-
-            mean_test_rewards.append(np.mean(test_rewards))
-
-            for name, param in agent.actor.named_parameters():
-                writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch)
-            for name, param in agent.critic.named_parameters():
-                writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch)
-
-            writer.add_scalar('test/mean_test_return', mean_test_rewards[-1], epoch)
-            logger.info("Epoch: {}, current timestep: {}, last reward: {}, "
-                        "mean reward: {}, mean test reward {}".format(epoch,
-                                                                      timestep,
-                                                                      rewards[-1],
-                                                                      np.mean(rewards[-10:]),
-                                                                      np.mean(test_rewards)))
-
-            # Save if the mean of the last three averaged rewards while testing
-            # is greater than the specified reward threshold
-            if np.mean(mean_test_rewards[-3:]) >= reward_threshold:
-                agent.save_checkpoint(timestep, memory)
-                time_last_checkpoint = time.time()
-                logger.info('Saved model at {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
-
-        epoch += 1
-
-    agent.save_checkpoint(timestep, memory)
-    logger.info('Saved model at endtime {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
-    logger.info('Stopping training at {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
-    env.close()

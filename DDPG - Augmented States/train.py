@@ -8,18 +8,17 @@ import gym
 import gym_Boeing
 import numpy as np
 import torch
+from torch.utils.tensorboard import SummaryWriter
 
 from ddpg import DDPG
 from utils.noise import OrnsteinUhlenbeckActionNoise
 from utils.replay_memory import ReplayMemory, Transition
-from wrappers.normalized_actions import NormalizedActions
-from trajectory import Trajectory
 from augment import Augment
 
 # Parse given arguments
 # gamma, tau, hidden_size, replay_size, batch_size, hidden_size are taken from the original paper
 parser = argparse.ArgumentParser()
-parser.add_argument("--env", default="boeing-danger-v0",
+parser.add_argument("--env", default="boeing-danger-v1",
                     help="the environment on which the agent should be trained ")
 parser.add_argument("--render_train", default=False, type=bool,
                     help="Render the training steps (default: False)")
@@ -27,7 +26,7 @@ parser.add_argument("--render_eval", default=False, type=bool,
                     help="Render the evaluation steps (default: False)")
 parser.add_argument("--load_model", default=False, type=bool,
                     help="Load a pretrained model (default: False)")
-parser.add_argument("--save_dir", default="./saved_models/",
+parser.add_argument("--save_dir", default="./saved_models_augmented_states/",
                     help="Dir. path to save and load a model (default: ./saved_models/)")
 parser.add_argument("--seed", default=0, type=int,
                     help="Random seed (default: 0)")
@@ -45,7 +44,7 @@ parser.add_argument("--noise_stddev", default=0.2, type=int,
                     help="Standard deviation of the OU-Noise (default: 0.2)")
 parser.add_argument("--hidden_size", nargs=2, default=[400, 300], type=tuple,
                     help="Num. of units of the hidden layers (default: [400, 300]; OpenAI: [64, 64])")
-parser.add_argument("--n_test_cycles", default=10, type=int,
+parser.add_argument("--n_test_cycles", default=2, type=int,
                     help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
 args = parser.parse_args()
 
@@ -55,6 +54,7 @@ if __name__ == "__main__":
 
     # Define the directory where to save and load models
     checkpoint_dir = args.save_dir + args.env
+    writer = SummaryWriter('runs/run_1')
 
     # Create the env
     kwargs = dict()
@@ -109,9 +109,8 @@ if __name__ == "__main__":
 
         state = torch.Tensor([env.reset()]).to(device)
         while True:
-            if timestep % 5000 == 0:
-                env.render()
-
+            # if timestep % 5000 == 0:
+            #     env.render()
 
             state = augment(state[0])
             action = agent.calc_action(state, ou_noise).to(device)
@@ -121,7 +120,7 @@ if __name__ == "__main__":
             next_aug_state = augment.mock_augment(next_state, state, action)
 
 
-            print(done, _)
+            # print(done, _)
             timestep += 1
             epoch_return += reward
 
@@ -146,13 +145,16 @@ if __name__ == "__main__":
                 epoch_policy_loss += policy_loss
 
             if done:
+                # env.render()
+                print(timestep)
                 break
 
         rewards.append(epoch_return)
         value_losses.append(epoch_value_loss)
         policy_losses.append(epoch_policy_loss)
+        writer.add_scalar('epoch/return', epoch_return, epoch)
 
-        if timestep >= 1000 * t:
+        if timestep >= 20000 * t:
             print('Epoch:', epoch)
             t += 1
             test_rewards = []
@@ -161,15 +163,15 @@ if __name__ == "__main__":
                 augment.reset()
                 test_reward = 0
                 while True:
-                    if args.render_eval:
-                        env.render()
+                    # if args.render_eval:
+                    #     env.render()
 
                     state = augment(state[0])
                     action = agent.calc_action(state)
 
                     next_state, reward, done, _ = env.step(action.cpu().numpy())
                     augment.update(action)
-                    print(done, _)
+                    # print(done, _)
                     test_reward += reward
 
                     next_aug_state = augment.mock_augment(next_state, state, action)
@@ -177,10 +179,20 @@ if __name__ == "__main__":
 
                     state = next_state
                     if done:
+                        # env.render()
                         break
                 test_rewards.append(test_reward)
 
             mean_test_rewards.append(np.mean(test_rewards))
+            print('Epoch return: ', np.mean(test_rewards))
+
+            for name, param in agent.actor.named_parameters():
+                writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch)
+            for name, param in agent.critic.named_parameters():
+                writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch)
+
+            writer.add_scalar('test/mean_test_return', mean_test_rewards[-1], epoch)
+
 
         epoch += 1
 

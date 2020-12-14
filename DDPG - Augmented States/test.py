@@ -10,61 +10,48 @@ import torch
 
 from ddpg import DDPG
 from wrappers import NormalizedActions
-
-# Create logger
-logger = logging.getLogger('test')
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
-
+from augment import Augment
 
 # Parse given arguments
 parser = argparse.ArgumentParser()
-parser.add_argument("--env", default="boeing-danger-v0",
+parser.add_argument("--env", default="boeing-danger-v1",
                     help="Env. on which the agent should be trained")
 parser.add_argument("--render", default="True", help="Render the steps")
 parser.add_argument("--seed", default=0, help="Random seed")
-parser.add_argument("--save_dir", default="./saved_models/", help="Dir. path to load a model")
+parser.add_argument("--save_dir", default="./saved_models_augmented_states/", help="Dir. path to load a model")
 parser.add_argument("--episodes", default=100, help="Num. of test episodes")
 args = parser.parse_args()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-# Some parameters, which are not saved in the network files
-gamma = 0.99  # discount factor for reward (default: 0.99)
-tau = 0.001  # discount factor for model (default: 0.001)
-hidden_size = (400, 300)  # size of the hidden layers (Deepmind: 400 and 300; OpenAI: 64)
+gamma = 0.99  
+tau = 0.001  
+hidden_size = (400, 300)  
 
 if __name__ == "__main__":
-
-    logger.info("Using device: {}".format(device))
 
     # Create the env
     kwargs = dict()
     env = gym.make(args.env, **kwargs)
-    # env = NormalizedActions(env)
+    augment = Augment(state_size=3, action_size=env.action_space.shape[0])
+    num_inputs = len(augment)
 
-    # Setting rnd seed for reproducibility
     env.seed(args.seed)
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
-    # Use checkpoint for safe to train danger
     checkpoint_dir = args.save_dir + args.env
-
-    # f = open('outptu.txt', 'a')
-
 
     agent = DDPG(gamma,
                  tau,
                  hidden_size,
-                 env.observation_space.shape[0],
+                 num_inputs,
                  env.action_space,
                  checkpoint_dir=checkpoint_dir
                  )
 
     agent.load_checkpoint()
 
-    # Load the agents parameters
     agent.set_eval()
 
     for _ in tqdm(range(args.episodes)):
@@ -73,30 +60,28 @@ if __name__ == "__main__":
         state = torch.Tensor([env.reset()]).to(device)
         episode_return = 0
         while True:
-            # if args.render:
-            #     env.render()
+            
+            state = augment(state[0])
+            action = agent.calc_action(state, action_noise=None).to(device)
 
-            action = agent.calc_action(state, action_noise=None)
+            if state.dim() == 1:
+                state = state.unsqueeze(0).to(device)
+            if action.dim() == 1:
+                action = action.unsqueeze(0).to(device)
+
             q_value = agent.critic(state, action)
             next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
             episode_return += reward
+            augment.update(action[0]) # ?
 
             state = torch.Tensor([next_state]).to(device)
-
-            # f.write(f"Action {action}, State: {state}")
 
             step += 1
 
             if done:
                 env.render()
-                logger.info(episode_return)
                 returns.append(episode_return)
-                # f.write(f"Episode return {episode_return}")
                 break
 
-    # f.close()
     mean = np.mean(returns)
     variance = np.var(returns)
-    logger.info("Score (on 100 episodes): {} +/- {}".format(mean, variance))
-
-# Todo: Actions are between 1 and -1, maybe fix
