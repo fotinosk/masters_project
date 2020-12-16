@@ -27,7 +27,7 @@ parser.add_argument("--render_eval", default=False, type=bool,
                     help="Render the evaluation steps (default: False)")
 parser.add_argument("--load_model", default=False, type=bool,
                     help="Load a pretrained model (default: False)")
-parser.add_argument("--save_dir", default="./saved_models_augmented_states/",
+parser.add_argument("--save_dir", default="./saved_models_dropout/",
                     help="Dir. path to save and load a model (default: ./saved_models/)")
 parser.add_argument("--seed", default=0, type=int,
                     help="Random seed (default: 0)")
@@ -190,6 +190,8 @@ if __name__ == "__main__":
                         # env.render()
                         break
                 test_rewards.append(test_reward)
+
+                agent.save_checkpoint(timestep, memory)
 
             mean_test_rewards.append(np.mean(test_rewards))
             print('Epoch return: ', np.mean(test_rewards))

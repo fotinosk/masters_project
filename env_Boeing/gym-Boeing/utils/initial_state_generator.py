@@ -5,7 +5,7 @@ Module that generates a random initial state for the plane.
 import random
 
 
-def state(danger=False):
+def state(danger=False, ds = None):
     """
     :return: Returns a state array
     [forward velocity, vertical velocity, pitch rate, pitch angle].transpose
@@ -22,16 +22,8 @@ def state(danger=False):
     state = [f_vel, v_vel, p_rate, p_angle, el_angle, thrust]
 
     if danger:
-        ds = random.randint(0,4)
+        if ds is None:
+            ds = random.randint(0,3)
+        assert ds <= 3, 'Specified State Must be less than 3!'
         state[ds] += 10 
-
-        if ds == 0:
-            print('Impulse on forward velocity')
-        elif ds == 1:
-            print('Impulse on vertical velocity')
-        elif ds == 2:
-            print('Impulse on pitch rate')
-        elif ds == 3:
-            print('Impulse on pitch angle')
-
     return state

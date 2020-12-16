@@ -29,11 +29,11 @@ class Flight:
         self.thrust_range = 10
         self.track_outs = []
 
-    def reset(self):
+    def reset(self, ds):
         """Reset the flight"""
 
         self.t = 0
-        self.state = state(self.danger)
+        self.state = state(self.danger, ds=ds)
         self.yout = None
         self.last_input = [0, 0]
         self.track_outs = []

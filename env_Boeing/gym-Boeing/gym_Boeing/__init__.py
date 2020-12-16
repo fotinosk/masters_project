@@ -22,6 +22,5 @@ register(
 
 register(
     id='boeing-danger-v2',
-    entry_point='gym_Boeing.envs:FailureDanger',
-    max_episode_steps=4999,
+    entry_point='gym_Boeing.envs:EvalDanger'
 )
