@@ -3,6 +3,7 @@ import logging
 import os
 import random
 import time
+import sys
 
 import gym
 import gym_Boeing
@@ -19,7 +20,7 @@ import datetime
 # Parse given arguments
 # gamma, tau, hidden_size, replay_size, batch_size, hidden_size are taken from the original paper
 parser = argparse.ArgumentParser()
-parser.add_argument("--env", default="boeing-danger-v1",
+parser.add_argument("--env", default="boeing-danger-v2",
                     help="the environment on which the agent should be trained ")
 parser.add_argument("--render_train", default=False, type=bool,
                     help="Render the training steps (default: False)")
@@ -27,7 +28,7 @@ parser.add_argument("--render_eval", default=False, type=bool,
                     help="Render the evaluation steps (default: False)")
 parser.add_argument("--load_model", default=False, type=bool,
                     help="Load a pretrained model (default: False)")
-parser.add_argument("--save_dir", default="./saved_models_dropout/",
+parser.add_argument("--save_dir", default="./saved_models_dropout_v2/",
                     help="Dir. path to save and load a model (default: ./saved_models/)")
 parser.add_argument("--seed", default=0, type=int,
                     help="Random seed (default: 0)")
@@ -166,10 +167,14 @@ if __name__ == "__main__":
             print('Epoch:', epoch)
             t += 1
             test_rewards = []
-            for _ in range(args.n_test_cycles):
-                state = torch.Tensor([env.reset()]).to(device)
+            # for _ in range(args.n_test_cycles):
+            runs = 0
+            while True:
+                runs += 1
+                state = torch.Tensor([env.reset(ds = runs % 4)]).to(device)
                 augment.reset()
                 test_reward = 0
+                agent.set_eval()
                 while True:
                     # if args.render_eval:
                     #     env.render()
@@ -187,11 +192,23 @@ if __name__ == "__main__":
 
                     state = next_state
                     if done:
-                        # env.render()
+                        print(_['len'])
+                        if _['len'] > 4999:
+                            runs = 0
                         break
+                print(f"Evaluation run: {runs}, Reward: {test_reward}")
                 test_rewards.append(test_reward)
 
                 agent.save_checkpoint(timestep, memory)
+
+                if runs == 20:
+                    print('Success condition satisfied, terminating training')
+                    agent.save_checkpoint(timestep, memory)
+                    sys.exit()
+                elif runs == 0:
+                    print('Success condition not met, resuming training')
+                    agent.set_train()
+                    break
 
             mean_test_rewards.append(np.mean(test_rewards))
             print('Epoch return: ', np.mean(test_rewards))

@@ -56,13 +56,14 @@ class EvalDanger(gym.Env):
         # self.flight.plot()
         x = list(np.arange(0, 0.05*len(self.past_sq_err), 0.05))
         try:
+            plt.cla()
             plt.plot(x, self.past_sq_err)
             plt.xlabel('Time (sec)')
             plt.ylabel('Absolute Value of Deviations')
             plt.show(block=False)
             plt.pause(0.0001)
-        except Exception as e:
-            print(f"Run into known Matplotlib bug, can't show plot. \n Error {e}")
+        except Exception:
+            print("Run into known Matplotlib bug, can't show plot.")
 
     def close(self):
         self.done = True
