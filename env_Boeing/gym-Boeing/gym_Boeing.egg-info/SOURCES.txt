@@ -1,7 +1,0 @@
-README.md
-setup.py
-gym_Boeing.egg-info/PKG-INFO
-gym_Boeing.egg-info/SOURCES.txt
-gym_Boeing.egg-info/dependency_links.txt
-gym_Boeing.egg-info/requires.txt
-gym_Boeing.egg-info/top_level.txt

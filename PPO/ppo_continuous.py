@@ -396,7 +396,6 @@ def main():
                         discounted_r.append(v_s_)
                     discounted_r.reverse()
 
-                    # TODO: All tensors are on GPU, so can't stack them unless they are in CPU
                     # bs, ba, br = np.vstack(buffer['state']), np.vstack(buffer['action']), np.array(discounted_r)[:, np.newaxis]
                     bs = torch.stack(buffer['state']).cpu().numpy()
                     ba = np.vstack(buffer['action'])
