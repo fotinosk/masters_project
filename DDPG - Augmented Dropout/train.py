@@ -20,7 +20,7 @@ import datetime
 # Parse given arguments
 # gamma, tau, hidden_size, replay_size, batch_size, hidden_size are taken from the original paper
 parser = argparse.ArgumentParser()
-parser.add_argument("--env", default="boeing-danger-v2",
+parser.add_argument("--env", default="failure-train-v0",
                     help="the environment on which the agent should be trained ")
 parser.add_argument("--render_train", default=False, type=bool,
                     help="Render the training steps (default: False)")
@@ -28,7 +28,7 @@ parser.add_argument("--render_eval", default=False, type=bool,
                     help="Render the evaluation steps (default: False)")
 parser.add_argument("--load_model", default=False, type=bool,
                     help="Load a pretrained model (default: False)")
-parser.add_argument("--save_dir", default="./saved_models_dropout_v2/",
+parser.add_argument("--save_dir", default="./saved_models_failure_modes/",
                     help="Dir. path to save and load a model (default: ./saved_models/)")
 parser.add_argument("--seed", default=0, type=int,
                     help="Random seed (default: 0)")
@@ -112,9 +112,6 @@ if __name__ == "__main__":
 
         state = torch.Tensor([env.reset()]).to(device)
         while True:
-            # if timestep % 5000 == 0:
-            #     env.render()
-
             state = augment(state[0])
             action = agent.calc_action(state, ou_noise).to(device)
             next_state, reward, done, _ = env.step(action.cpu().numpy())
@@ -122,8 +119,6 @@ if __name__ == "__main__":
 
             next_aug_state = augment.mock_augment(next_state, state, action)
 
-
-            # print(done, _)
             writer.add_scalar('Reward', reward, timestep)
 
             timestep += 1
@@ -154,7 +149,6 @@ if __name__ == "__main__":
 
 
             if done:
-                # env.render()
                 print(timestep)
                 break
 
@@ -167,7 +161,6 @@ if __name__ == "__main__":
             print('Epoch:', epoch)
             t += 1
             test_rewards = []
-            # for _ in range(args.n_test_cycles):
             runs = 0
             while True:
                 runs += 1
@@ -176,15 +169,11 @@ if __name__ == "__main__":
                 test_reward = 0
                 agent.set_eval()
                 while True:
-                    # if args.render_eval:
-                    #     env.render()
-
                     state = augment(state[0])
                     action = agent.calc_action(state)
 
                     next_state, reward, done, _ = env.step(action.cpu().numpy())
                     augment.update(action)
-                    # print(done, _)
                     test_reward += reward
 
                     next_aug_state = augment.mock_augment(next_state, state, action)

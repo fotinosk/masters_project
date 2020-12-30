@@ -6,6 +6,7 @@ on the normal aircraft model with one of its states excited by 10, or on a 'faul
 
 from control.matlab import *
 from utils.model_parameters import Al, Bl, Cl, Dl, dt
+from utils.prints import print_green, print_red
 import numpy as np
 from utils.flight_v2 import Flight
 import gym
@@ -33,11 +34,13 @@ class FailureMode1(gym.Env):
         """        
         self.done = False
         self.flight = Flight(failure_modes=[[Al,B_err,Cl,Dl]])
+        self.possibilities = self.flight.possibilities
         self.observation = [0,0]
         self.past_err = []
 
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(3,), dtype=np.float32)
-        self.action_space = spaces.Box(-100, 100, shape=(2,), dtype=np.float32)
+        self.action_space = spaces.Box(low=np.array([-1,-1]), high=np.array([1,1]))
+        self.actual_space = np.array([20,400]) # rescale actions to avoid needing to normalize the enviroment
 
     def step(self, action):
         """
@@ -48,7 +51,8 @@ class FailureMode1(gym.Env):
 
         Returns:
             tuple: Returns the state following the action, the reward, whether the episode is finished and an information dict.
-        """        
+        """  
+        action *= self.actual_space
         self.observation = self.flight.io(action)
         error = np.linalg.norm(self.observation, 1)
         self.past_err.append(error)
@@ -65,11 +69,11 @@ class FailureMode1(gym.Env):
         if len(self.past_err) > control_len and max(self.past_err[-control_len:]) < control_acc:
             self.done = True
             reward = 100
-            print(f"Episode Succesful| Episode Length: {len(self.past_err)}")
+            print_green(f"Episode Succesful| Episode Length: {len(self.past_err)}")
         elif len(self.past_err) == failure_time:
             self.done = True
             reward = -1000
-            print('Episode Failed')
+            print_red('Episode Failed')
 
         reward -= error
 

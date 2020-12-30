@@ -13,11 +13,11 @@ from augment import Augment
 
 # Parse given arguments
 parser = argparse.ArgumentParser()
-parser.add_argument("--env", default="boeing-danger-v2",
+parser.add_argument("--env", default="failure-train-v0",
                     help="Env. on which the agent should be trained")
 parser.add_argument("--render", default="True", help="Render the steps")
 parser.add_argument("--seed", default=0, help="Random seed")
-parser.add_argument("--save_dir", default="./saved_models_dropout_v2/", help="Dir. path to load a model")
+parser.add_argument("--save_dir", default="./saved_models_failure_modes/", help="Dir. path to load a model")
 parser.add_argument("--episodes", default=100, help="Num. of test episodes")
 args = parser.parse_args()
 

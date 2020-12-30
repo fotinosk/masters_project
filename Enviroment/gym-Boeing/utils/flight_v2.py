@@ -4,6 +4,7 @@ for more options in the control matrices (A,B,C,D)
 """
 
 from utils.model_parameters import Al, Bl, Cl, Dl, dt
+from utils.prints import print_green, print_red, print_yellow
 from control.matlab import *
 import numpy as np
 import random
@@ -52,6 +53,8 @@ class Flight:
         else:
             self.state = self.state_gen()
 
+        self.possibilities = len(self.modes) * 4
+
     def state_gen(self, impulse=False, ds=None):
 
         """
@@ -93,18 +96,21 @@ class Flight:
         self.track_out = []
 
 
-        '''Must allow for all individual failure modes and all excited states to be called, ideally using the min num of inputs
+        '''
+        THIS DESCRIPTION NEEDS TO BE UPDATED, SINCE FAILURE MODES CAN BE EXCITED AS WELL
+
+        Must allow for all individual failure modes and all excited states to be called, ideally using the min num of inputs
         It is known that 4 states can be excited, so len of modes+3 (ie 1 failure and 1 norm you get 1+4=5)
 
         The 1st 4 correspond to random excitation of the normal mode, and the rest to the failure modes
         Start counting from zero
         '''
-        possibilities = len(self.modes) + 3
+        possibilities = self.possibilities
 
 
         # Weighted prob selection to ensure that the failure modes come up as often
         # as the normal operation mode
-        prob_dist = [0.125] * 4 + (possibilities-4) * [0.5 / (possibilities-4)]
+        prob_dist = list(np.ones(possibilities)/ possibilities)
 
         if ds is None:
             ds = random.choices(np.arange(possibilities), prob_dist)[0]
@@ -113,15 +119,15 @@ class Flight:
         assert ds < possibilities
 
         if ds <= 3:
-            print('Normal operation mode with state impulse \n')
+            print_yellow(f"Normal operation mode with state impulse at state {ds}")
             self.current_mode = self.sys_norm
             self.state = self.state_gen(impulse=True, ds=ds)
         else:
-            print(f"Mode of failre {ds-3} \n")
-            self.current_mode = self.modes[possibilities-ds]
-            self.state = self.state_gen(impulse=True, ds=ds)
+            print_yellow(f"Mode of failre {ds//4}, with state impulse {ds%4}")
+            self.current_mode = self.modes[ds//4]
+            self.state = self.state_gen(impulse=True, ds=ds%4)
 
-        return ds
+        return ds # why return
 
     def io(self, inputs):
 

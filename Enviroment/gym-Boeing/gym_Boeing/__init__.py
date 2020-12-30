@@ -27,5 +27,5 @@ register(
 
 register(
     id = 'failure-train-v0',
-    entry_points ='gym_Boeing.envs:FailureMode1' 
+    entry_point='gym_Boeing.envs:FailureMode1' 
 )

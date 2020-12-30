@@ -10,6 +10,7 @@ python tutorial_PPO.py --train/test
 """
 import math
 import random
+import sys
 
 import gym
 import gym_Boeing
@@ -21,6 +22,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.distributions import Normal, MultivariateNormal
+from torch.utils.tensorboard import SummaryWriter
 
 from IPython.display import clear_output
 import matplotlib.pyplot as plt
@@ -28,6 +30,7 @@ from matplotlib import animation
 from IPython.display import display
 from reacher import Reacher
 from augment import Augment
+import datetime
 
 import argparse
 import time
@@ -57,10 +60,10 @@ args = parser.parse_args()
 
 #####################  hyper parameters  ####################
 
-ENV_NAME = 'boeing-danger-v2'  # environment name HalfCheetah-v2 Pendulum-v0
+ENV_NAME = 'failure-train-v0'
 RANDOMSEED = 2  # random seed
 
-EP_MAX = 100  # total number of episodes for training
+EP_MAX = 1000  # total number of episodes for training
 EP_LEN = 5000  # total number of steps for each episode
 GAMMA = 0.9  # reward discount
 A_LR = 0.0001  # learning rate for actor
@@ -343,10 +346,13 @@ class PPO(object):
 
 def main():
 
-    # env = NormalizedActions(gym.make(ENV_NAME).unwrapped)
     env = gym.make(ENV_NAME)
+    pos = env.possibilities
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
+
+    filename = 'runs/ppo_run_' + datetime.datetime.now().strftime("%m%d%H%M")
+    writer = SummaryWriter(filename)
 
     augment = Augment(state_size=3, action_size=action_dim)
     num_inputs = len(augment)
@@ -384,6 +390,9 @@ def main():
                 s = s_
                 ep_r += r
 
+                writer.add_scalar('Reward', r, t*(ep+1))
+                writer.add_scalar('Cumulative Reward', ep_r, t*(ep+1))
+
                 # update ppo
                 if (t + 1) % BATCH == 0 or t == EP_LEN - 1 or done:
                     if done:
@@ -394,6 +403,7 @@ def main():
                     for r in buffer['reward'][::-1]:
                         v_s_ = r + GAMMA * v_s_
                         discounted_r.append(v_s_)
+                    writer.add_scalar('Value', v_s_, t*(ep+1))
                     discounted_r.reverse()
 
                     # bs, ba, br = np.vstack(buffer['state']), np.vstack(buffer['action']), np.array(discounted_r)[:, np.newaxis]
@@ -406,12 +416,56 @@ def main():
 
                 if done:
                     break
+            
+            writer.add_scalar('Episode Return', ep_r, ep)
+
             if ep == 0:
                 all_ep_r.append(ep_r)
             else:
                 all_ep_r.append(all_ep_r[-1] * 0.9 + ep_r * 0.1)
-            if ep%50==0:
+
+            if ep%50==0: # Evaluate Model
+                
                 ppo.save_model('model/ppo')
+
+                test_rewards = []
+                runs = 0
+                while True:
+                    runs += 1
+                    state = torch.Tensor([env.reset(ds = runs % pos)]).to(device)
+                    augment.reset()
+                    test_reward = 0
+
+                    while True:
+                        state = augment(state[0])
+                        action = ppo.choose_action(state, True)
+                        augment.update(torch.tensor(action).to(device))
+
+                        next_state, reward, done, _ = env.step(action)
+
+                        test_reward += reward
+
+                        next_state = torch.Tensor([next_state]).to(device)
+
+                        state = next_state
+
+                        if done:
+                            print(_['len'])
+                            if _['len'] > 4999:
+                                runs = 0
+                            break
+                    
+                    print(f"Evaluation run: {runs}, Reward: {test_reward}")
+                    test_rewards.append(test_reward)
+
+                    if runs >= pos * 4:
+                        print('Success condition met, terminating training')
+                        ppo.save_model('model/ppo')
+                        sys.exit()
+                    elif runs == 0:
+                        print('Evaluation failed, resuming training')
+                        break
+
             print(
                 'Episode: {}/{}  | Episode Reward: {:.4f}  | Running Time: {:.4f}'.format(
                     ep, EP_MAX, ep_r,
@@ -419,18 +473,19 @@ def main():
                 )
             )
 
-            plt.ion()
-            plt.cla()
-            plt.title('PPO')
-            plt.plot(np.arange(len(all_ep_r)), all_ep_r)
-            # plt.ylim(-2000, 0)
-            plt.xlabel('Episode')
-            plt.ylabel('Moving averaged episode reward')
-            plt.show()
-            plt.pause(0.1)
+            # plt.ion()
+            # plt.cla()
+            # plt.title('PPO')
+            # plt.plot(np.arange(len(all_ep_r)), all_ep_r)
+            # # plt.ylim(-2000, 0)
+            # plt.xlabel('Episode')
+            # plt.ylabel('Moving averaged episode reward')
+            # plt.show()
+            # plt.pause(0.1)
         ppo.save_model('model/ppo')
-        plt.ioff()
-        plt.show()
+        # plt.ioff()
+        # plt.show()
+        writer.close()
 
     if args.test:
         ppo.load_model('model/ppo')
@@ -446,6 +501,8 @@ def main():
                 s, r, done, _ = env.step(a)
                 if done:
                     break
+
 if __name__ == '__main__':
     main()
+
     
