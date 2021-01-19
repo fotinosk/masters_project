@@ -5,7 +5,7 @@ on the normal aircraft model with one of its states excited by 10, or on a 'faul
 """
 
 from control.matlab import *
-from utils.model_parameters import Al, Bl, Cl, Dl, dt
+from utils.model_parameters import A, B, C, D, dt
 from utils.prints import print_green, print_red
 import numpy as np
 from utils.flight_v2 import Flight
@@ -17,7 +17,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-B_err = 0.8 * Bl
+B_err = 0.8 * B
 
 
 class FailureMode1(gym.Env):
@@ -33,14 +33,14 @@ class FailureMode1(gym.Env):
         Initialize the enviroment
         """        
         self.done = False
-        self.flight = Flight(failure_modes=[[Al,B_err,Cl,Dl]])
+        self.flight = Flight(failure_modes=[[A,B_err,C,D]])
         self.possibilities = self.flight.possibilities
         self.observation = [0,0]
         self.past_err = []
 
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(3,), dtype=np.float32)
         self.action_space = spaces.Box(low=np.array([-1,-1]), high=np.array([1,1]))
-        self.actual_space = np.array([20,400]) # rescale actions to avoid needing to normalize the enviroment
+        self.actual_space = np.array([10,10]) # rescale actions to avoid needing to normalize the enviroment
 
     def step(self, action):
         """
@@ -95,13 +95,14 @@ class FailureMode1(gym.Env):
         self.done = False
         return self.observation
 
-    def render(self, mode='human', block=False):
+    def render(self, mode='human', block=False, stack=False):
         """
         Produces plots for the enviroment.
         """        
         x = list(np.arange(0, 0.05*len(self.past_err), 0.05))
         try:
-            plt.cla()
+            if not stack:
+                plt.cla()
             plt.plot(x, self.past_err)
             plt.xlabel('Time (sec)')
             plt.ylabel('Absolute Value of Deviations')

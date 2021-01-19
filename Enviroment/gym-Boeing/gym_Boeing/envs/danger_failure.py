@@ -45,8 +45,8 @@ class FailureDanger(gym.Env):
 
         return self.observation, reward, self.done, {'len': len(self.past_sq_err), 'error': sq_error}
 
-    def reset(self):
-        self.flight.reset()
+    def reset(self, ds=None):
+        self.flight.reset(ds=ds)
         self.observation = [0, 0, 0]
         self.past_sq_err = []
         self.done = False

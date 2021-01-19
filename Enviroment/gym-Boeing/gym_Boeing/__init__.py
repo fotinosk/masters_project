@@ -29,3 +29,23 @@ register(
     id = 'failure-train-v0',
     entry_point='gym_Boeing.envs:FailureMode1' 
 )
+
+register(
+    id = 'boeing-danger-v3',
+    entry_point='gym_Boeing.envs:Longitudinal'
+)
+
+register(
+    id = 'failure-test-v0',
+    entry_point='gym_Boeing.envs:FailureMode2' 
+)
+
+register(
+    id = 'failure-train-v1',
+    entry_point = 'gym_Boeing.envs:FailureMode3'
+)
+
+register(
+    id = 'failure-test-v1',
+    entry_point = 'gym_Boeing.envs:FailureMode4'
+)

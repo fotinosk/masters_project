@@ -1,6 +1,7 @@
 import argparse
 import os
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 import gym
 import gym_Boeing
@@ -11,15 +12,12 @@ from ddpg import DDPG
 from wrappers import NormalizedActions
 from augment import Augment
 
-# Parse given arguments
-parser = argparse.ArgumentParser()
-parser.add_argument("--env", default="failure-train-v0",
-                    help="Env. on which the agent should be trained")
-parser.add_argument("--render", default="True", help="Render the steps")
-parser.add_argument("--seed", default=0, help="Random seed")
-parser.add_argument("--save_dir", default="./saved_models_failure_modes/", help="Dir. path to load a model")
-parser.add_argument("--episodes", default=100, help="Num. of test episodes")
-args = parser.parse_args()
+
+env         = input("Select Enviroment)
+save_dir    = "./saved_models_failure_modes/"
+render      = True
+seed        = 0
+episodes    = 100
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -31,15 +29,16 @@ if __name__ == "__main__":
 
     # Create the env
     kwargs = dict()
-    env = gym.make(args.env, **kwargs)
+    env = gym.make(env, **kwargs)
     augment = Augment(state_size=3, action_size=env.action_space.shape[0])
     num_inputs = len(augment)
 
-    env.seed(args.seed)
-    torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
+    env.seed(seed)
+    torch.manual_seed(seed)
+    np.random.seed(seed)
 
-    checkpoint_dir = args.save_dir + args.env
+    trained_model  = input('Select the trained model on which this unknown mode will be tested')
+    checkpoint_dir = save_dir + trained_model
 
     agent = DDPG(gamma,
                  tau,
@@ -53,10 +52,11 @@ if __name__ == "__main__":
 
     agent.set_eval()
 
-    for _ in tqdm(range(args.episodes)):
+    # for _ in tqdm(range(args.episodes)):
+    for i in tqdm(range(env.possibilities)):
         step = 0
         returns = list()
-        state = torch.Tensor([env.reset()]).to(device)
+        state = torch.Tensor([env.reset(ds=i)]).to(device)
         episode_return = 0
         while True:
             
@@ -74,13 +74,10 @@ if __name__ == "__main__":
             augment.update(action[0]) # ?
 
             state = torch.Tensor([next_state]).to(device)
-            env.render()
-
             step += 1
 
             if done:
+                env.render(stack=True)
                 returns.append(episode_return)
                 break
-
-    mean = np.mean(returns)
-    variance = np.var(returns)
+    plt.savefig('wrong_B.png')

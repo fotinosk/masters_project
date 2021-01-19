@@ -1,0 +1,13 @@
+https://github.com/fshamshirdar/pytorch-rdpg
+
+this model doesn't implment L2 weight decay of batch normalization, 
+maybe add different hidden states too
+change window size
+change criteriion
+
+I think what they are doing with the expirences is wrong. I think 
+it's meant ot be iterating over the batch not the individual components
+
+
+Chenges to be evaluated:
+- Added batch norms to actor and critic

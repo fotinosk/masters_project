@@ -29,7 +29,7 @@ class Flight:
         self.thrust_range = 10
         self.track_outs = []
 
-    def reset(self, ds):
+    def reset(self, ds=None):
         """Reset the flight"""
 
         self.t = 0

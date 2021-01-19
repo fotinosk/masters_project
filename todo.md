@@ -11,3 +11,5 @@ Include any details here for future improvements
 - Fix user warning in Augment
 - Add print colors to the failure and success       DONE
 - Maybe add verbosity option(?)
+- Make common file, so that trajectory.py etc doesn't have to be copied in
+- Make Replay Buffer O(1)

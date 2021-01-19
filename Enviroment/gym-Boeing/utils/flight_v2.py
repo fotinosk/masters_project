@@ -3,7 +3,7 @@ Redesigned flight class, designed to interanlly handle state initialization and 
 for more options in the control matrices (A,B,C,D)
 """
 
-from utils.model_parameters import Al, Bl, Cl, Dl, dt
+from utils.model_parameters import A, B, C, D, dt
 from utils.prints import print_green, print_red, print_yellow
 from control.matlab import *
 import numpy as np
@@ -31,7 +31,7 @@ class Flight:
         """        
         self.dt = dt
         self.t = 0
-        self.sys_norm = StateSpace(Al,Bl,Cl,Dl)
+        self.sys_norm = StateSpace(A,B,C,D)
 
         self.yout = None
         self.last_input = [0,0]

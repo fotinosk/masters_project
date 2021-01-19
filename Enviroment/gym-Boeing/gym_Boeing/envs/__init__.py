@@ -4,3 +4,7 @@ from gym_Boeing.envs.normalized_danger import NormalizedDanger
 from gym_Boeing.envs.danger_failure import FailureDanger
 from gym_Boeing.envs.boeing_eval import EvalDanger
 from gym_Boeing.envs.B_wrong_train import FailureMode1
+from gym_Boeing.envs.danger_longit import Longitudinal
+from gym_Boeing.envs.B_wrong_test import FailureMode2
+from gym_Boeing.envs.halfB_train import FailureMode3
+from gym_Boeing.envs.halfB_test import FailureMode4
