@@ -14,7 +14,7 @@ from augment import Augment
 
 
 env         = input("Select Enviroment \n")
-save_dir    = "./saved_deep_models_failure_modes/"
+save_dir    = r"./saved_deep_models_failure_modes/"
 render      = True
 seed        = 0
 episodes    = 100

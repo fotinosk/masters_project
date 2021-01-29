@@ -30,7 +30,7 @@ tau             = 0.001
 gamma           = 0.99
 replay_size     = 1e5
 batch_size      = 64
-timesteps       = 1e6
+timesteps       = 1e7
 seed            = 0
 save_dir        = r"./saved_deep_models_failure_modes/"
 render_train    = False
@@ -151,7 +151,7 @@ if __name__ == "__main__":
             runs = 0
             while True:
                 runs += 1
-                state = torch.Tensor([env.reset(ds = runs % 4)]).to(device)
+                state = torch.Tensor([env.reset(ds = runs % env.possibilities)]).to(device)
                 augment.reset()
                 test_reward = 0
                 agent.set_eval()

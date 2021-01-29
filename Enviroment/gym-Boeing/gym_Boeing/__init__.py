@@ -49,3 +49,18 @@ register(
     id = 'failure-test-v1',
     entry_point = 'gym_Boeing.envs:FailureMode4'
 )
+
+register(
+    id = 'failure-train-v2',
+    entry_point = 'gym_Boeing.envs:FailureMode5'
+)
+
+register(
+    id = 'simple-model-v0',
+    entry_point = 'gym_Boeing.envs:SimpleModel'
+)
+
+register(
+    id = 'ineffective-throtle-v0',
+    entry_point = 'gym_Boeing.envs:FailureMode6'
+)
