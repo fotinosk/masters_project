@@ -5,6 +5,9 @@ Should also transform graphs to right size before storing
 
 from torch.utils.data.dataset import Dataset
 from torchvision import transforms
+import os
+import pandas as pd
+import PIL
 
 class Graph_Dataset(Dataset):
 
@@ -12,17 +15,21 @@ class Graph_Dataset(Dataset):
 
         self.transformations = transforms.Compose([
                                 transforms.ToTensor(),
-                                transforms.Normalize([0.5, 0.5, 0.5],
-                                                     [0.5, 0.5, 0.5])
+                                transforms.Normalize([0.5], [0.5])
                                 ])
-        self.dataset = None  # csv file with names and labels
+        self.cwd = os.getcwd()
+        self.image_files =  os.listdir(self.cwd + '/dataset/images')
+        self.labels = pd.read_csv('./dataset/labels.csv')
 
     def __getitem__(self, index):
-        # index is the image number, ie the image name
 
-        # ...
-        return (img, label)
+        img_name = self.labels.iloc[index-1,:][0]
+        label = self.labels.iloc[index-1,:][1]
+        image_name = os.path.join(self.cwd + '/dataset/images', img_name)
+        image =  PIL.Image.open(image_name)
+        image = self.transformations(image)
+        return (image, label)
+
 
     def __len__(self):
-        last_line = self.dataset.readlines()[-1]
-        return last_line[0]
+        return int(self.labels.iloc[-1,:].name) + 1
