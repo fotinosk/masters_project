@@ -64,3 +64,43 @@ register(
     id = 'ineffective-throtle-v0',
     entry_point = 'gym_Boeing.envs:FailureMode6'
 )
+
+register(
+    id = 'faultyA-train-v0',
+    entry_point = 'gym_Boeing.envs:FailureMode7'
+)
+
+register(
+    id = 'faultyA-test-v0',
+    entry_point = 'gym_Boeing.envs:FailureMode8'
+)
+
+register(
+    id = 'combined-modes-v0',
+    entry_point = 'gym_Boeing.envs:FailureMode9'
+)
+
+register(
+    id = 'failure-train-v3',
+    entry_point = 'gym_Boeing.envs:FailureMode10'
+)
+
+register(
+    id = 'failure-test-v3',
+    entry_point = 'gym_Boeing.envs:FailureMode11'
+)
+
+register(
+    id = 'actuation-train-v0',
+    entry_point = 'gym_Boeing.envs:FailureMode12'
+)
+
+register(
+    id = 'four-modes-train-v0',
+    entry_point = 'gym_Boeing.envs:FailureMode13'
+)
+
+register(
+    id = 'four-modes-test-v0',
+    entry_point = 'gym_Boeing.envs:FailureMode14'
+)

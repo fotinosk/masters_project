@@ -9,7 +9,6 @@ import numpy as np
 import torch
 
 from ddpg_deeper import DDPG
-from wrappers import NormalizedActions
 from augment import Augment
 
 
@@ -49,7 +48,6 @@ if __name__ == "__main__":
                  )
 
     agent.load_checkpoint()
-
     agent.set_eval()
 
     # for _ in tqdm(range(args.episodes)):

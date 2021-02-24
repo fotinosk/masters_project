@@ -13,7 +13,7 @@ from wrappers import NormalizedActions
 from augment import Augment
 
 
-env         = input("Select Enviroment)
+env         = input("Select Enviroment \n")
 save_dir    = "./saved_models_failure_modes/"
 render      = True
 seed        = 0
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
     np.random.seed(seed)
 
-    trained_model  = input('Select the trained model on which this unknown mode will be tested')
+    trained_model  = input('Select the trained model on which this unknown mode will be tested \n')
     checkpoint_dir = save_dir + trained_model
 
     agent = DDPG(gamma,

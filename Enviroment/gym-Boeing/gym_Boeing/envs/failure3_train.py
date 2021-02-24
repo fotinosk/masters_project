@@ -17,7 +17,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-B_err = 0.5 * B
 neg_B = -1 * B
 
 
@@ -34,7 +33,7 @@ class FailureMode5(gym.Env):
         Initialize the enviroment
         """        
         self.done = False
-        self.flight = Flight(failure_modes=[[A,B_err,C,D],[A,neg_B,C,D]])
+        self.flight = Flight(failure_modes=[[A,neg_B,C,D]])
         self.possibilities = self.flight.possibilities
         self.observation = [0,0]
         self.past_err = []

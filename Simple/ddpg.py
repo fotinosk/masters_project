@@ -120,24 +120,26 @@ class DDPG(object):
         done_batch = torch.cat(batch.done).to(device)
         next_state_batch = torch.cat(batch.next_state).to(device)
 
-        next_state_batch = next_state_batch.unsqueeze(-1).to(device)
+        next_state_batch = next_state_batch.unsqueeze(1).to(device)
 
         # Get the actions and the state values to compute the targets
         next_action_batch = self.actor_target(next_state_batch)
         next_state_action_values = self.critic_target(next_state_batch, next_action_batch.detach())
 
         # Compute the target
-        reward_batch = reward_batch.unsqueeze(1)
+        # reward_batch = reward_batch.unsqueeze(1)
         done_batch = done_batch.unsqueeze(1)
-        expected_values = reward_batch + (1.0 - done_batch) * self.gamma * next_state_action_values
+        expected_values = reward_batch + (1.0 - done_batch) * self.gamma * next_state_action_values.squeeze(1)
 
         # Update the critic network
         self.critic_optimizer.zero_grad()
+
         # unsqueeze them
         state_batch = state_batch.unsqueeze(1)
         action_batch = action_batch.unsqueeze(1)
+
         state_action_batch = self.critic(state_batch, action_batch)
-        value_loss = F.mse_loss(state_action_batch, expected_values.detach())
+        value_loss = F.mse_loss(state_action_batch.squeeze(1), expected_values.detach())
         value_loss.backward()
         self.critic_optimizer.step()
 

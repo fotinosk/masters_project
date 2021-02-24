@@ -3,6 +3,7 @@ import logging
 import os
 import random
 import time
+import sys
 
 import gym
 import gym_Boeing
@@ -13,149 +14,130 @@ from torch.utils.tensorboard import SummaryWriter
 from ddpg import DDPG
 from utils.noise import OrnsteinUhlenbeckActionNoise
 from utils.replay_memory import ReplayMemory, Transition
-from wrappers.normalized_actions import NormalizedActions
+from augment import Augment
+import datetime
 
-# Create logger
-logger = logging.getLogger('train')
-logger.setLevel(logging.INFO)
-
-# Parse given arguments
-# gamma, tau, hidden_size, replay_size, batch_size, hidden_size are taken from the original paper
 parser = argparse.ArgumentParser()
-parser.add_argument("--env", default="simple-model-v0",
-                    help="the environment on which the agent should be trained ")
-parser.add_argument("--render_train", default=False, type=bool,
-                    help="Render the training steps (default: False)")
-parser.add_argument("--render_eval", default=False, type=bool,
-                    help="Render the evaluation steps (default: False)")
 parser.add_argument("--load_model", default=False, type=bool,
                     help="Load a pretrained model (default: False)")
-parser.add_argument("--save_dir", default="./saved_models/",
-                    help="Dir. path to save and load a model (default: ./saved_models/)")
-parser.add_argument("--seed", default=0, type=int,
-                    help="Random seed (default: 0)")
-parser.add_argument("--timesteps", default=1e6, type=int,
-                    help="Num. of total timesteps of training (default: 1e6)")
-parser.add_argument("--batch_size", default=64, type=int,
-                    help="Batch size (default: 64; OpenAI: 128)")
-parser.add_argument("--replay_size", default=1e6, type=int,
-                    help="Size of the replay buffer (default: 1e6; OpenAI: 1e5)")
-parser.add_argument("--gamma", default=0.99,
-                    help="Discount factor (default: 0.99)")
-parser.add_argument("--tau", default=0.001,
-                    help="Update factor for the soft update of the target networks (default: 0.001)")
-parser.add_argument("--noise_stddev", default=0.2, type=int,
-                    help="Standard deviation of the OU-Noise (default: 0.2)")
-parser.add_argument("--hidden_size", nargs=2, default=[200, 150], type=tuple,
-                    help="Num. of units of the hidden layers (default: [400, 300]; OpenAI: [64, 64])")
-parser.add_argument("--n_test_cycles", default=10, type=int,
-                    help="Num. of episodes in the evaluation phases (default: 10; OpenAI: 20)")
 args = parser.parse_args()
 
-# if gpu is to be used
+# env             = input('Select enviroment \n')
+env             = 'simple-model-v0'
+hidden_size     = [400,300]
+noise_stddev    = 0.2
+tau             = 0.001
+gamma           = 0.99
+replay_size     = 1e5
+batch_size      = 64
+timesteps       = 1e6
+seed            = 0
+save_dir        = r"./saved_simple/"
+render_train    = False
+render_eval     = False
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-logger.info("Using {}".format(device))
 
 if __name__ == "__main__":
 
     # Define the directory where to save and load models
-    checkpoint_dir = args.save_dir + args.env
-    writer = SummaryWriter('runs/run_1')
+    checkpoint_dir = save_dir + env
+    filename = 'runs/run_' + datetime.datetime.now().strftime("%m%d%H%M")
+    writer = SummaryWriter(filename)
 
     # Create the env
     kwargs = dict()
-    env = gym.make(args.env, **kwargs)
-    # env = NormalizedActions(env)
+    env = gym.make(env, **kwargs)
 
-    # Define the reward threshold when the task is solved (if existing) for model saving
-    reward_threshold = gym.spec(args.env).reward_threshold if gym.spec(
-        args.env).reward_threshold is not None else np.inf
+    augment = Augment(state_size=env.observation_space.shape[0], action_size=env.action_space.shape[0], memory_size=8, output_size=3)
+    num_inputs = len(augment)
 
     # Set random seed for all used libraries where possible
-    env.seed(args.seed)
-    torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
-    random.seed(args.seed)
+    env.seed(seed)
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
 
     if torch.cuda.is_available():
-        torch.cuda.manual_seed(args.seed)
+        torch.cuda.manual_seed(seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
     # Define and build DDPG agent
-    hidden_size = tuple(args.hidden_size)
-    agent = DDPG(args.gamma,
-                 args.tau,
+    agent = DDPG(gamma,
+                 tau,
                  hidden_size,
-                 env.observation_space.shape[0],
+                 num_inputs,
                  env.action_space,
                  checkpoint_dir=checkpoint_dir
                  )
 
     # Initialize replay memory
-    memory = ReplayMemory(int(args.replay_size))
+    memory = ReplayMemory(int(replay_size))
 
     # Initialize OU-Noise
     nb_actions = env.action_space.shape[-1]
     ou_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(nb_actions),
-                                            sigma=float(args.noise_stddev) * np.ones(nb_actions))
+                                            sigma=float(noise_stddev) * np.ones(nb_actions))
 
     # Define counters and other variables
     start_step = 0
-    # timestep = start_step
     if args.load_model:
-        # Load agent if necessary
         start_step, memory = agent.load_checkpoint()
     timestep = start_step // 10000 + 1
     rewards, policy_losses, value_losses, mean_test_rewards = [], [], [], []
     epoch = 0
     t = 0
+    last_timestep = 0
     time_last_checkpoint = time.time()
 
-    # Start training
-    logger.info('Train agent on {} env'.format({env.unwrapped.spec.id}))
-    logger.info('Doing {} timesteps'.format(args.timesteps))
-    logger.info('Start at timestep {0} with t = {1}'.format(timestep, t))
-    logger.info('Start training at {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
-
-    while timestep <= args.timesteps:
+    while timestep <= timesteps:
         ou_noise.reset()
         epoch_return = 0
+        t0 = time.time()
 
         state = torch.Tensor([env.reset()]).to(device)
         while True:
-            if args.render_train:
-                env.render()
+            state = augment(state[0])
+            action = agent.calc_action(state, ou_noise).to(device)
+            next_state, reward, done, _ = env.step(action.cpu().numpy())
+            augment.update(action)
 
-            action = agent.calc_action(state, ou_noise)
-            next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
-            # print(done, _)
+            next_aug_state = augment.mock_augment(next_state, state, action)
+
+            writer.add_scalar('Reward', reward, timestep)
+
             timestep += 1
             epoch_return += reward
 
+            state = state.unsqueeze(0).to(device)
+            action = action.unsqueeze(0).to(device)
             mask = torch.Tensor([done]).to(device)
             reward = torch.Tensor([reward]).to(device)
             next_state = torch.Tensor([next_state]).to(device)
+            next_aug_state = torch.Tensor([next_aug_state]).to(device)
 
-            memory.push(state, action, mask, next_state, reward)
+            memory.push(state, action, mask, next_aug_state, reward)
 
             state = next_state
 
             epoch_value_loss = 0
             epoch_policy_loss = 0
 
-            if len(memory) > args.batch_size:
-                transitions = memory.sample(args.batch_size)
+            if len(memory) > batch_size:
+                transitions = memory.sample(batch_size)
                 batch = Transition(*zip(*transitions))
-
-                # Update actor and critic according to the batch
                 value_loss, policy_loss = agent.update_params(batch)
 
                 epoch_value_loss += value_loss
                 epoch_policy_loss += policy_loss
 
+                writer.add_scalar('Value Loss', value_loss, timestep)
+                writer.add_scalar('Policy Loss', policy_loss, timestep)
+
             if done:
-                print('Done', _['len'])
+                print(f"Timestep: {timestep-last_timestep} | Episode Reward: {epoch_return[0]:.{0}f} | Time taken: {time.time()- t0:.{2}f}sec")
+                last_timestep = timestep
                 break
 
         rewards.append(epoch_return)
@@ -163,32 +145,50 @@ if __name__ == "__main__":
         policy_losses.append(epoch_policy_loss)
         writer.add_scalar('epoch/return', epoch_return, epoch)
 
-        # Test every 10th episode (== 1e4) steps for a number of test_epochs epochs
-        if timestep >= 1000 * t:
+        if timestep >= 10000 * t:
             print('Epoch:', epoch)
             t += 1
             test_rewards = []
-            for _ in range(args.n_test_cycles):
+            runs = 0
+            while True:
+                runs += 1
                 state = torch.Tensor([env.reset()]).to(device)
+                augment.reset()
                 test_reward = 0
+                agent.set_eval()
                 while True:
-                    if args.render_eval:
-                        env.render()
+                    state = augment(state[0])
+                    action = agent.calc_action(state)
 
-                    action = agent.calc_action(state)  # Selection without noise
-
-                    next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
-                    print(done, _)
+                    next_state, reward, done, _ = env.step(action.cpu().numpy())
+                    augment.update(action)
                     test_reward += reward
 
+                    next_aug_state = augment.mock_augment(next_state, state, action)
                     next_state = torch.Tensor([next_state]).to(device)
 
                     state = next_state
                     if done:
+                        print(_['len'])
+                        if _['len'] > 499:
+                            runs = 0
                         break
+                print(f"Evaluation run: {runs}, Reward: {test_reward}")
                 test_rewards.append(test_reward)
 
+                agent.save_checkpoint(timestep, memory)
+
+                if runs == 10:
+                    print('Success condition satisfied, terminating training')
+                    agent.save_checkpoint(timestep, memory)
+                    sys.exit()
+                elif runs == 0:
+                    print('Success condition not met, resuming training')
+                    agent.set_train()
+                    break
+
             mean_test_rewards.append(np.mean(test_rewards))
+            print('Epoch return: ', np.mean(test_rewards))
 
             for name, param in agent.actor.named_parameters():
                 writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch)
@@ -196,23 +196,10 @@ if __name__ == "__main__":
                 writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch)
 
             writer.add_scalar('test/mean_test_return', mean_test_rewards[-1], epoch)
-            logger.info("Epoch: {}, current timestep: {}, last reward: {}, "
-                        "mean reward: {}, mean test reward {}".format(epoch,
-                                                                      timestep,
-                                                                      rewards[-1],
-                                                                      np.mean(rewards[-10:]),
-                                                                      np.mean(test_rewards)))
 
-            # Save if the mean of the last three averaged rewards while testing
-            # is greater than the specified reward threshold
-            if np.mean(mean_test_rewards[-3:]) >= reward_threshold:
-                agent.save_checkpoint(timestep, memory)
-                time_last_checkpoint = time.time()
-                logger.info('Saved model at {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
 
         epoch += 1
 
     agent.save_checkpoint(timestep, memory)
-    logger.info('Saved model at endtime {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
-    logger.info('Stopping training at {}'.format(time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.localtime())))
     env.close()
+    writer.close()

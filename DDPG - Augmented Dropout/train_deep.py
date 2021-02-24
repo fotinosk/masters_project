@@ -22,7 +22,7 @@ parser.add_argument("--load_model", default=False, type=bool,
                     help="Load a pretrained model (default: False)")
 args = parser.parse_args()
 
-# env             = "failure-train-v0"
+# env             = "failure-train-v2"
 env             = input('Select enviroment \n')
 hidden_size     = [100,400,300]
 noise_stddev    = 0.2
@@ -121,8 +121,9 @@ if __name__ == "__main__":
 
             epoch_value_loss = 0
             epoch_policy_loss = 0
-
+            
             if len(memory) > batch_size:
+
                 transitions = memory.sample(batch_size)
                 batch = Transition(*zip(*transitions))
                 value_loss, policy_loss = agent.update_params(batch)

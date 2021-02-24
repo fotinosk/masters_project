@@ -4,7 +4,7 @@ import torch
 
 import torch.nn.functional as F
 from torch.optim import Adam
-
+import sys
 from utils.nets_deeper import Actor, Critic
 
 
@@ -99,6 +99,10 @@ class DDPG(object):
 
         self.critic_optimizer.zero_grad()
         state_action_batch = self.critic(state_batch, action_batch)
+
+        # print(state_action_batch.shape, expected_values.shape)
+        # sys.exit()
+
         value_loss = F.mse_loss(state_action_batch, expected_values.detach())
         value_loss.backward()
         self.critic_optimizer.step()

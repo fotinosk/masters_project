@@ -4,8 +4,9 @@ from augment import Augment
 import gym
 import gym_Boeing
 import torch
+import matplotlib.pyplot as plt
 
-env         = "failure-test-v1"
+env         = "failure-test-v3"
 save_dir    = "./saved_deep_models_failure_modes/"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 env = gym.make(env)
@@ -16,36 +17,48 @@ gamma = 0.99
 tau = 0.001  
 hidden_size = (100, 400, 300)  
 
-trained_model  = "failure-train-v1"
+trained_model  = "failure-train-v3"
 checkpoint_dir = save_dir + trained_model
 
 agent = DDPG(gamma, tau, hidden_size, num_inputs, 
              env.action_space, checkpoint_dir=checkpoint_dir)
 
-agent.load_checkpoint()
+agent.load_checkpoint()  # TODO: uncomment
 
-state = torch.Tensor([env.reset()]).to(device)
 v = Visualizer(env, agent)
 
-while True:
-    state = augment(state[0])
-    action = agent.calc_action(state, action_noise=None).to(device)
+def see_brain(ds):
+    state = torch.Tensor([env.reset(ds = ds)]).to(device)
+    augment.reset()
 
-    if state.dim() == 1:
-        state = state.unsqueeze(0).to(device)
-    if action.dim() == 1:
-        action = action.unsqueeze(0).to(device)
+    while True:
+        state = augment(state[0])
+        action = agent.calc_action(state, action_noise=None).to(device)
 
-    q_value = agent.critic(state, action)
-    next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
+        if state.dim() == 1:
+            state = state.unsqueeze(0).to(device)
+        if action.dim() == 1:
+            action = action.unsqueeze(0).to(device)
 
-    augment.update(action[0])
+        q_value = agent.critic(state, action)
+        next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
 
-    state = torch.Tensor([next_state]).to(device)
+        augment.update(action[0])
 
-    v.prints(action.cpu().numpy()[0])
+        state = torch.Tensor([next_state]).to(device)
 
-    if done:
-        break
+        v.prints(action.cpu().numpy()[0])
 
-    
+        if done or _['len']==100:
+            v.save_mat(ds)
+            # input('Save then press ENTER to continue...')
+            break
+
+pos = env.possibilities
+excited_state = 3
+num_modes = int(pos/4)
+
+for i in range(num_modes):
+    x = i * 4 + excited_state
+    v.set_title(f"Mode: {i}, with excited state {excited_state}")
+    see_brain(x)

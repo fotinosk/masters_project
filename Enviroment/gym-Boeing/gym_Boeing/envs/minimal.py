@@ -17,6 +17,7 @@ class SimpleModel(gym.Env):
         self.state = random.random() * 10
 
     def reset(self):
+        print('Resetting...')
         self.done = False
         self.past_err = []
         self.b = random.choice([-1,1])
@@ -39,9 +40,11 @@ class SimpleModel(gym.Env):
         if len(self.past_err) > control_len and max(self.past_err[-control_len:]) < control_acc:
             self.done = True
             reward += 100
+            print('SUCCESS!')
         elif len(self.past_err) == failure_len:
             self.done = True
             reward -= 1000
+            print('FAILURE.')
         reward -= error
 
         return self.state, reward, self.done, {'len': len(self.past_err), 'error': error}

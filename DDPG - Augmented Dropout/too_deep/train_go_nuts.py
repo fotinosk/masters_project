@@ -24,7 +24,7 @@ args = parser.parse_args()
 
 # env             = "failure-train-v0"
 env             = input('Select enviroment \n')
-hidden_size     = [64, 64, 64, 400,300]
+hidden_size     = [200, 500, 400,300]
 noise_stddev    = 0.2
 tau             = 0.001
 gamma           = 0.99
@@ -32,7 +32,7 @@ replay_size     = 1e5
 batch_size      = 64
 timesteps       = 1e7
 seed            = 0
-save_dir        = r"./saved_deep_models_failure_modes/"
+save_dir        = r"./saved_too_deep_models_failure_modes/"
 render_train    = False
 render_eval     = False
 
