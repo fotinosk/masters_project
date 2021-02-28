@@ -10,12 +10,16 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-tau_throttle = 2 # new throttle 
+tau_throttle = 5 # new throttle 
+tau_elevator = 1
 An = A
 Bn = B
 
 An[-1,-1] = - 1/tau_throttle
 Bn[-1,-1] = 1/tau_throttle
+
+An[-2, -2] = - 1 / tau_elevator
+Bn[-2, -2] = 1 / tau_elevator
 
 A_err = 0.8 * A
 B_err = 0.5 * B

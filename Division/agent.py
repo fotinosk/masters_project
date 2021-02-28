@@ -34,10 +34,10 @@ for step in range(10**8):
 
     optimizer.zero_grad()
     x = (torch.rand(batch_size, 2) - 0.5) * 200  # range [-100,100]
-    ratio = x[:, 0] / x[:, 1]
     for i in range(len(x)):
         if abs(x[i,1]) < 0.000001:
             x = torch.cat([x[:i], x[i+1:]])
+    ratio = x[:, 0] / x[:, 1]
     ratio = ratio.unsqueeze(1)
     z = div(x)
     loss = criterion(z, ratio)
