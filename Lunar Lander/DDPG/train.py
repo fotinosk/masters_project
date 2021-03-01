@@ -2,9 +2,8 @@ import argparse
 import random
 import time
 import sys
-
 import gym
-import gym_Boeing
+import lunar_gym
 import numpy as np
 import torch
 from torch.utils.tensorboard import SummaryWriter
@@ -12,28 +11,28 @@ from torch.utils.tensorboard import SummaryWriter
 from ddpg import DDPG
 from utils.noise import OrnsteinUhlenbeckActionNoise
 from utils.replay_memory import ReplayMemory, Transition
-from augment import Augment
 import datetime
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--load_model", default=False, type=bool,
                     help="Load a pretrained model (default: False)")
+
 args = parser.parse_args()
 
-# env             = "failure-train-v0"
-env             = input('Select enviroment \n')
-hidden_size     = [400,300]
-noise_stddev    = 0.2
-tau             = 0.001
-gamma           = 0.99
-replay_size     = 1e5
-batch_size      = 64
-timesteps       = 1e6
-seed            = 0
-save_dir        = r"./saved_models_failure_modes/"
-render_train    = False
-render_eval     = False
+env = r"partially-obs-v0"
+save_dir = './lunar_models/'
+seed = 0
+timesteps = int(1e6)
+batch_size = 64
+replay_size = int(1e6)
+gamma = 0.99
+tau = 0.001
+noise_stddev = 0.2
+hidden_size = [400, 300]
+n_test_cycles = 10
 
+# if gpu is to be used
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 if __name__ == "__main__":
@@ -43,12 +42,11 @@ if __name__ == "__main__":
     filename = 'runs/run_' + datetime.datetime.now().strftime("%m%d%H%M")
     writer = SummaryWriter(filename)
 
+    reward_threshold = gym.spec(env).reward_threshold 
+
     # Create the env
     kwargs = dict()
     env = gym.make(env, **kwargs)
-
-    augment = Augment(state_size=3, action_size=env.action_space.shape[0])
-    num_inputs = len(augment)
 
     # Set random seed for all used libraries where possible
     env.seed(seed)
@@ -62,13 +60,9 @@ if __name__ == "__main__":
         torch.backends.cudnn.benchmark = False
 
     # Define and build DDPG agent
-    agent = DDPG(gamma,
-                 tau,
-                 hidden_size,
-                 num_inputs,
-                 env.action_space,
-                 checkpoint_dir=checkpoint_dir
-                 )
+    hidden_size = tuple(hidden_size)
+    agent = DDPG(gamma, tau, hidden_size, env.observation_space.shape[0],
+                 env.action_space, checkpoint_dir=checkpoint_dir)
 
     # Initialize replay memory
     memory = ReplayMemory(int(replay_size))
@@ -95,25 +89,21 @@ if __name__ == "__main__":
         t0 = time.time()
 
         state = torch.Tensor([env.reset()]).to(device)
+
         while True:
-            state = augment(state[0])
-            action = agent.calc_action(state, ou_noise).to(device)
-            next_state, reward, done, _ = env.step(action.cpu().numpy())
-            augment.update(action)
-
-            next_aug_state = augment.mock_augment(next_state, state, action)
-
+            action = agent.calc_action(state, ou_noise)
+            next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
+            
             writer.add_scalar('Reward', reward, timestep)
-
+            
             timestep += 1
             epoch_return += reward
 
             mask = torch.Tensor([done]).to(device)
             reward = torch.Tensor([reward]).to(device)
             next_state = torch.Tensor([next_state]).to(device)
-            next_aug_state = torch.Tensor([next_aug_state]).to(device)
 
-            memory.push(state, action, mask, next_aug_state, reward)
+            memory.push(state, action, mask, next_state, reward)
 
             state = next_state
 
@@ -131,9 +121,7 @@ if __name__ == "__main__":
                 writer.add_scalar('Value Loss', value_loss, timestep)
                 writer.add_scalar('Policy Loss', policy_loss, timestep)
 
-
             if done:
-                # print(timestep, ':', epoch_return, 'time taken', time.time()- t0)
                 print(f"Timestep: {timestep-last_timestep} | Episode Reward: {epoch_return:.{0}f} | Time taken: {time.time()- t0:.{2}f}sec")
                 last_timestep = timestep
                 break
@@ -143,50 +131,46 @@ if __name__ == "__main__":
         policy_losses.append(epoch_policy_loss)
         writer.add_scalar('epoch/return', epoch_return, epoch)
 
-        if timestep >= 20000 * t:
+        if timestep >= 10000 * t:
             print('Epoch:', epoch)
+            agent.save_checkpoint(timestep, memory)
             t += 1
             test_rewards = []
             runs = 0
             while True:
                 runs += 1
-                state = torch.Tensor([env.reset(ds = runs % env.possibilities)]).to(device)
-                augment.reset()
+                state = torch.Tensor([env.reset()]).to(device)
                 test_reward = 0
                 agent.set_eval()
                 while True:
-                    state = augment(state[0])
-                    action = agent.calc_action(state)
+                    action = agent.calc_action(state)  # Selection without noise
 
-                    next_state, reward, done, _ = env.step(action.cpu().numpy())
-                    augment.update(action)
+                    next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
                     test_reward += reward
 
-                    next_aug_state = augment.mock_augment(next_state, state, action)
                     next_state = torch.Tensor([next_state]).to(device)
 
                     state = next_state
                     if done:
-                        print(_['len'])
-                        if _['len'] > 4999:
+                        if reward < 0: # ie -100 meaning it failed
                             runs = 0
                         break
                 print(f"Evaluation run: {runs}, Reward: {test_reward}")
                 test_rewards.append(test_reward)
-
-                agent.save_checkpoint(timestep, memory)
-
-                if runs == 20:
-                    print('Success condition satisfied, terminating training')
-                    agent.save_checkpoint(timestep, memory)
-                    sys.exit()
-                elif runs == 0:
+            
+                if runs == 0:
                     print('Success condition not met, resuming training')
                     agent.set_train()
                     break
+                elif runs == 5 and np.mean(test_rewards) > 200:
+                    print('Success condition satisfied, terminating training')
+                    agent.save_checkpoint(timestep, memory)
+                    sys.exit()
+
 
             mean_test_rewards.append(np.mean(test_rewards))
             print('Epoch return: ', np.mean(test_rewards))
+
 
             for name, param in agent.actor.named_parameters():
                 writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch)
@@ -195,9 +179,7 @@ if __name__ == "__main__":
 
             writer.add_scalar('test/mean_test_return', mean_test_rewards[-1], epoch)
 
-
         epoch += 1
 
     agent.save_checkpoint(timestep, memory)
     env.close()
-    writer.close()

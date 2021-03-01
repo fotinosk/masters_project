@@ -56,7 +56,8 @@ class FailureMode14(gym.Env):
             [A, B_err2, C, D],
             [A_err, B_err, C, D], 
             [A_err2, B_err2, C, D], 
-            [An, Bn, C, D]
+            [An, Bn, C, D],
+            [An2, Bn2, C, D]
             ])
         self.possibilities = self.flight.possibilities
         self.observation = [0, 0]

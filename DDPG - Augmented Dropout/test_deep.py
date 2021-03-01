@@ -50,13 +50,12 @@ if __name__ == "__main__":
     agent.load_checkpoint()
     agent.set_eval()
 
-    # for _ in tqdm(range(args.episodes)):
-    # for i in tqdm(range(env.possibilities)):
-    for i in tqdm(range(100)):
+    for i in tqdm(range(env.possibilities)):
+    # for i in tqdm(range(100)):
         step = 0
         returns = list()
-        # state = torch.Tensor([env.reset(ds=i)]).to(device)
-        state = torch.Tensor([env.reset()]).to(device)
+        state = torch.Tensor([env.reset(ds=i)]).to(device)
+        # state = torch.Tensor([env.reset()]).to(device)
         episode_return = 0
         while True:
             
