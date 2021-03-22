@@ -8,6 +8,7 @@ import sys
 import gym
 import gym_Boeing
 import numpy as np
+from numpy.core.shape_base import stack
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
@@ -51,6 +52,7 @@ if __name__ == "__main__":
 
     augment = Augment(state_size=env.observation_space.shape[0], action_size=env.action_space.shape[0], memory_size=8, output_size=3)
     num_inputs = len(augment)
+    # num_inputs = env.action_space.shape[0]
 
     # Set random seed for all used libraries where possible
     env.seed(seed)
@@ -103,6 +105,8 @@ if __name__ == "__main__":
             next_state, reward, done, _ = env.step(action.cpu().numpy())
             augment.update(action)
 
+            # print(action, state, reward) 
+
             next_aug_state = augment.mock_augment(next_state, state, action)
 
             writer.add_scalar('Reward', reward, timestep)
@@ -118,6 +122,7 @@ if __name__ == "__main__":
             next_aug_state = torch.Tensor([next_aug_state]).to(device)
 
             memory.push(state, action, mask, next_aug_state, reward)
+            # memory.push(state, action, mask, next_state, reward)
 
             state = next_state
 

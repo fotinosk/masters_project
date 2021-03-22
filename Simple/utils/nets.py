@@ -51,14 +51,14 @@ class Actor(nn.Module):
         # Layer 1
         x = self.linear1(x)
         x = self.ln1(x)
-        x = F.log_softmax(x, -1)
-        # x = F.relu(x)
+        # x = F.log_softmax(x, -1)
+        x = F.relu(x)
 
         # Layer 2
         x = self.linear2(x)
         x = self.ln2(x)
-        # x = F.relu(x)
-        x = F.log_softmax(x, -1)
+        x = F.relu(x)
+        # x = F.log_softmax(x, -1)
 
         # Output
         mu = torch.tanh(self.mu(x))
@@ -99,15 +99,15 @@ class Critic(nn.Module):
         # Layer 1
         x = self.linear1(x)
         x = self.ln1(x)
-        # x = F.relu(x)
-        x = F.log_softmax(x, -1)
+        x = F.relu(x)
+        # x = F.log_softmax(x, -1)
 
         # Layer 2
         x = torch.cat((x, actions), -1)
         x = self.linear2(x)
         x = self.ln2(x)
-        # x = F.relu(x)
-        x = torch.tanh(F.log_softmax(x, -1)) # added the tanh to revert the log
+        x = F.relu(x)
+        # x = torch.tanh(F.log_softmax(x, -1)) # added the tanh to revert the log
 
         # Output
         V = self.V(x)

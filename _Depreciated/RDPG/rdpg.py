@@ -101,12 +101,12 @@ class RDPG(object):
                     self.agent.save_model(checkpoint_path)
 
                 if episode_steps == self.max_episode_length:
-                    self.env.render()
+                    # self.env.render()
                     if debug: prRed("Episode isn't done, taking too long, restarting")
                     done = True
 
                 if done: # end of episode, reset
-                    self.env.render()
+                    # self.env.render()
                     if debug: prGreen('#{}: episode_reward:{} steps:{}'.format(episode,episode_reward,step))
                     state0 = None
                     episode_reward = 0.

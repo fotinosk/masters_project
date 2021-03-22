@@ -1,0 +1,10 @@
+Metadata-Version: 1.2
+Name: gym-pomdp-wrappers
+Version: 1.0.0
+Summary: POMDP wrappers for OpenAI Gym
+Home-page: UNKNOWN
+Author: Stephan Weigand
+License: MIT
+Description: UNKNOWN
+Platform: UNKNOWN
+Requires-Python: >=3.5

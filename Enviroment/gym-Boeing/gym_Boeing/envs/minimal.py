@@ -13,8 +13,8 @@ class SimpleModel(gym.Env):
         self.past_err = []
         self.b = random.choice([-1,1])
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(1,))
-        self.action_space = spaces.Box(-2,2, shape=(1,))
-        self.state = random.random() * 10
+        self.action_space = spaces.Box(-1,1, shape=(1,))
+        self.state = random.random() * 10 - 5
 
     def reset(self):
         print('Resetting...')
@@ -41,9 +41,9 @@ class SimpleModel(gym.Env):
             self.done = True
             reward += 100
             print('SUCCESS!')
-        elif len(self.past_err) == failure_len:
+        elif len(self.past_err) >= failure_len:
             self.done = True
-            reward -= 1000
+            reward -= 100
             print('FAILURE.')
         reward -= error
 
