@@ -1,3 +1,4 @@
+import os
 import math
 import random
 
@@ -249,14 +250,16 @@ class SAC_Trainer():
         return predicted_new_q_value.mean()
 
     def save_model(self, path):
-        torch.save(self.soft_q_net1.state_dict(), path+'_q1')
-        torch.save(self.soft_q_net2.state_dict(), path+'_q2')
-        torch.save(self.policy_net.state_dict(), path+'_policy')
+        if not os.path.exists(path):
+            os.mkdir(path)
+        torch.save(self.soft_q_net1.state_dict(), path+'sac_v2_q1.pth')
+        torch.save(self.soft_q_net2.state_dict(), path+'sac_v2_q2.pth')
+        torch.save(self.policy_net.state_dict(), path+'sac_v2_policy.pth')
 
     def load_model(self, path):
-        self.soft_q_net1.load_state_dict(torch.load(path+'_q1'))
-        self.soft_q_net2.load_state_dict(torch.load(path+'_q2'))
-        self.policy_net.load_state_dict(torch.load(path+'_policy'))
+        self.soft_q_net1.load_state_dict(torch.load(path+'sac_v2_q1.pth'))
+        self.soft_q_net2.load_state_dict(torch.load(path+'sac_v2_q2.pth'))
+        self.policy_net.load_state_dict(torch.load(path+'sac_v2_policy.pth'))
 
         self.soft_q_net1.eval()
         self.soft_q_net2.eval()

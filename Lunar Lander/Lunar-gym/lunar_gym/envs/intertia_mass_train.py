@@ -1,5 +1,5 @@
 """
-2 different mass modes, default = 10, alt_I = 8
+2 different modes, default, inertia set to 8 and mass set to 3
 """
 
 
@@ -38,6 +38,7 @@ VIEWPORT_W = 600
 VIEWPORT_H = 400
 
 ALT_I = 8
+ALT_M = 3
 
 
 class ContactDetector(contactListener):
@@ -76,7 +77,7 @@ class LunarLander(gym.Env, EzPickle):
         self.lander = None
         self.particles = []
         self.timestep = 0
-        self.modes = 2
+        self.modes = 3
         self.max_timestep = 500
 
         self.prev_reward = None
@@ -165,17 +166,18 @@ class LunarLander(gym.Env, EzPickle):
         self.lander.color1 = (0.5, 0.4, 0.9)
         self.lander.color2 = (0.3, 0.3, 0.5)
 
-        # if random.choice([True, False]):
-        #     self.lander.mass = 10
         if not mode:
-            mode = random.choice([0, 1])
+            mode = random.choice([0, 1, 2])
         assert 0 <= mode < self.modes and isinstance(mode, int), 'Invalid Mode'
 
         if mode == 0:
-            print('Mode 0 - Inertia Unchanged')
+            print('Mode 0 - Original')
         elif mode == 1:
             print(f'Mode 1 - Inertia set to {ALT_I}')
             self.lander.inertia = ALT_I
+        elif mode == 2:
+            print(f'Mode 2 - mass set to {ALT_M}')
+            self.lander.mass = ALT_M
 
         self.lander.ApplyForceToCenter( (
             self.np_random.uniform(-INITIAL_RANDOM, INITIAL_RANDOM),
@@ -382,7 +384,7 @@ class LunarLander(gym.Env, EzPickle):
             self.viewer = None
 
 
-class InertiaModeTrain(LunarLander):
+class InertiaMassTrain(LunarLander):
     continuous = True
 
 def heuristic(env, s):

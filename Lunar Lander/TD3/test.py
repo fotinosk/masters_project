@@ -5,8 +5,8 @@ import lunar_gym
 from gym_pomdp_wrappers import MuJoCoHistoryEnv
 
 def test():
-    trained_env_name = "mass-train-v0"
-    test_env_name = "mass-test-v0"
+    trained_env_name = "inertia-train-v0"
+    test_env_name = "inertia-test-v0"
     random_seed = 0
     n_episodes = 10
     lr = 0.001
@@ -29,7 +29,7 @@ def test():
     
     for ep in range(1, n_episodes+1):
         ep_reward = 0
-        state = env.reset()
+        state = env.reset(mode=ep%3)
         for t in range(max_timesteps):
             action = policy.select_action(state)
             state, reward, done, _ = env.step(action)

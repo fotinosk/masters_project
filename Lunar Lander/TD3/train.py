@@ -1,19 +1,21 @@
+from os import write
 import torch
 import gym
 import numpy as np
 from TD3 import TD3
 from utils import ReplayBuffer
 from gym_pomdp_wrappers import MuJoCoHistoryEnv
+from torch.utils.tensorboard import SummaryWriter, writer
 
 def train():
     ######### Hyperparameters #########
-    env_name = "mass-train-v0"
+    env_name = "inertia-train-v0"
     random_seed = 0
     log_interval = 10           # print avg reward after interval
     solved_reward = 200          # stop training if avg_reward > solved_reward
     save_episode = 500         # keep saving after n episodes
     max_episodes = 10000        # max num of episodes
-    max_timesteps = 500         # max timesteps in one episode
+    max_timesteps = 501         # max timesteps in one episode
 
     gamma = 0.99                # discount for future rewards
     batch_size = 100            # num of transitions sampled from replay buffer
@@ -36,6 +38,8 @@ def train():
     
     policy = TD3(lr, state_dim, action_dim, max_action)
     replay_buffer = ReplayBuffer()
+
+    writer = SummaryWriter()
     
     if random_seed:
         print("Random Seed: {}".format(random_seed))
@@ -72,6 +76,8 @@ def train():
         
         # logging updates:
         log_f.write('{},{}\n'.format(episode, ep_reward))
+        writer.add_scalar("Episode Reward", ep_reward, episode)
+        writer.flush()
         log_f.flush()
         ep_reward = 0
         
@@ -83,7 +89,7 @@ def train():
             log_f.close()
             break
         
-        if episode > 500:
+        if episode > save_episode:
             policy.save(directory, filename)
         
         # print avg reward every log interval:

@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -120,6 +121,9 @@ class TD3:
                     
                 
     def save(self, directory, name):
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
         torch.save(self.actor.state_dict(), '%s/%s_actor.pth' % (directory, name))
         torch.save(self.actor_target.state_dict(), '%s/%s_actor_target.pth' % (directory, name))
         

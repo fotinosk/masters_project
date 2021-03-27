@@ -4,9 +4,9 @@ from sac import SAC_Trainer
 import torch
 import gym
 import numpy as np
-from utils import ReplayBuffer
 from gym_pomdp_wrappers import MuJoCoHistoryEnv
 import matplotlib.pyplot as plt
+from torch.utils.tensorboard import SummaryWriter
 
 
 def plot(rewards):
@@ -19,21 +19,17 @@ def train():
     replay_buffer_size = 1e6
     replay_buffer = ReplayBuffer(replay_buffer_size)
 
-    ENV = 'Lunar Lander'
-    if ENV == 'Lunar Lander':
-        env = MuJoCoHistoryEnv('mass-train-v0', hist_len=20)
-        action_dim = env.action_space.shape[0]
-        state_dim  = env.observation_space.shape[0]
-        action_range=1.
-    else:
-        env = NormalizedActions(gym.make(ENV))
-        action_dim = env.action_space.shape[0]
-        state_dim  = env.observation_space.shape[0]
-        action_range=1.
+    ENV = 'inertia-train-v0'
+    env = MuJoCoHistoryEnv(ENV, hist_len=20)
+    action_dim = env.action_space.shape[0]
+    state_dim  = env.observation_space.shape[0]
+    action_range=1.
 
+    writter = SummaryWriter()
+    
     # hyper-parameters for RL training
-    max_episodes  = 2000
-    max_steps   = 2000
+    max_episodes  = 10000
+    max_steps   = 501
     frame_idx   = 0
     batch_size  = 300
     explore_steps = 0  # for random action sampling in the beginning of training
@@ -42,7 +38,8 @@ def train():
     DETERMINISTIC=False
     hidden_dim = 512
     rewards     = []
-    model_path = f'./models/{ENV}/sac_v2'
+    model_path = f'./models/{ENV}/'
+    solved_reward = 200
 
     sac_trainer=SAC_Trainer(replay_buffer, hidden_dim=hidden_dim, action_range=action_range, state_dim=state_dim, action_dim=action_dim)
 
@@ -64,17 +61,25 @@ def train():
                    
             if len(replay_buffer) > batch_size:
                 for i in range(update_itr):
-                    _ = sac_trainer.update(batch_size, reward_scale=10., auto_entropy=AUTO_ENTROPY, target_entropy=-1.*action_dim)
+                    _ = sac_trainer.update(batch_size, reward_scale=1., auto_entropy=AUTO_ENTROPY, target_entropy=-1.*action_dim)
 
             if done:
                 break
+        
+        writter.add_scalar('Episode Reward', episode_reward, eps)
 
         if eps % 20 == 0 and eps>0: # plot and model saving interval
-            plot(rewards)
+            # plot(rewards)
             np.save('rewards', rewards)
             sac_trainer.save_model(model_path)
         print('Episode: ', eps, '| Episode Reward: ', episode_reward)
         rewards.append(episode_reward)
+
+        if np.mean(rewards[-5:]) > solved_reward:
+            print('######## Solved! ########')
+            sac_trainer.save_model(model_path)
+            break
+
     sac_trainer.save_model(model_path)
 
 if __name__ == '__main__':

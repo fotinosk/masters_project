@@ -1,4 +1,3 @@
-from utils import ReplayBuffer
 from sac import SAC_Trainer
 
 import torch
@@ -35,24 +34,16 @@ def test():
         state_dim  = env.observation_space.shape[0]
         action_range=1.
 
-    # hyper-parameters for RL training
-    max_episodes  = 2000
-    max_steps   = 2000 if ENV ==  'Reacher' else 150  # Pendulum needs 150 steps per episode to learn well, cannot handle 20
-    frame_idx   = 0
-    batch_size  = 300
-    explore_steps = 0  # for random action sampling in the beginning of training
-    update_itr = 1
-    AUTO_ENTROPY=True
+    max_steps   = 500
     DETERMINISTIC=False
     hidden_dim = 512
-    rewards     = []
-    model_path = f'./models/{train_ENV}/sac_v2'
+    model_path = f'./models/{train_ENV}/'
 
     sac_trainer = SAC_Trainer(replay_buffer, hidden_dim=hidden_dim, action_range=action_range, state_dim=state_dim, action_dim=action_dim)
 
     sac_trainer.load_model(model_path)
     for eps in range(10):
-        state =  env.reset()
+        state =  env.reset(eps%3)
         episode_reward = 0
 
         for step in range(max_steps):
@@ -62,6 +53,9 @@ def test():
 
             episode_reward += reward
             state=next_state
+
+            if done:
+                break
 
         print('Episode: ', eps, '| Episode Reward: ', episode_reward)
 
