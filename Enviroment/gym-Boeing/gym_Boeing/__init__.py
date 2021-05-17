@@ -104,3 +104,14 @@ register(
     id = 'four-modes-test-v0',
     entry_point = 'gym_Boeing.envs:FailureMode14'
 )
+
+
+register(
+    id = 'demonstration-v0',
+    entry_point = 'gym_Boeing.envs:Demo'
+)
+
+register(
+    id = 'demonstration-v1',
+    entry_point = 'gym_Boeing.envs:Demo2'
+)

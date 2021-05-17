@@ -22,8 +22,8 @@ def test():
     # ENV = ['Reacher', 'Pendulum-v0', 'HalfCheetah-v2'][2]
     ENV = 'Lunar Lander'
     if ENV == 'Lunar Lander':
-        train_ENV = 'mass-train-v0'
-        test_ENV = 'mass-test-v0'
+        train_ENV = 'sticky-im-train-v0'
+        test_ENV = 'sticky-im-test-v0'
         env = MuJoCoHistoryEnv(test_ENV, hist_len=20)
         action_dim = env.action_space.shape[0]
         state_dim  = env.observation_space.shape[0]
@@ -42,8 +42,8 @@ def test():
     sac_trainer = SAC_Trainer(replay_buffer, hidden_dim=hidden_dim, action_range=action_range, state_dim=state_dim, action_dim=action_dim)
 
     sac_trainer.load_model(model_path)
-    for eps in range(10):
-        state =  env.reset(eps%3)
+    for eps in range(20):
+        state =  env.reset(eps%11)
         episode_reward = 0
 
         for step in range(max_steps):

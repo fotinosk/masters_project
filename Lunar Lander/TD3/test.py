@@ -5,10 +5,10 @@ import lunar_gym
 from gym_pomdp_wrappers import MuJoCoHistoryEnv
 
 def test():
-    trained_env_name = "inertia-train-v0"
-    test_env_name = "inertia-test-v0"
+    trained_env_name = "sticky-im-train-v0"
+    test_env_name = "sticky-im-test-v0"
     random_seed = 0
-    n_episodes = 10
+    n_episodes = 20
     lr = 0.001
     max_timesteps = 3000
     render = True
@@ -29,7 +29,7 @@ def test():
     
     for ep in range(1, n_episodes+1):
         ep_reward = 0
-        state = env.reset(mode=ep%3)
+        state = env.reset(mode=ep%11)
         for t in range(max_timesteps):
             action = policy.select_action(state)
             state, reward, done, _ = env.step(action)

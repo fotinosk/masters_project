@@ -1,13 +1,13 @@
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
-from utils.flight import Flight
+from utils.flight_demo import Flight
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-class FailureDanger(gym.Env):
+class Demo(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self):
@@ -46,31 +46,29 @@ class FailureDanger(gym.Env):
         return self.observation, reward, self.done, {'len': len(self.past_sq_err), 'error': sq_error}
 
     def reset(self, ds=None):
-        self.flight.reset(ds=ds)
+        self.flight.reset(ds)
         self.observation = [0, 0, 0]
         self.past_sq_err = []
         self.done = False
-        # print('Flight has been reset!')
         return self.observation
 
     def render(self, mode='human'):
         # self.flight.plot()
         x = list(np.arange(0, 0.05*len(self.past_sq_err), 0.05))
         try:
+            plt.cla()
             plt.plot(x, self.past_sq_err)
             plt.xlabel('Time (sec)')
             plt.ylabel('Absolute Value of Deviations')
             plt.show(block=False)
-            plt.pause(0.01)
-        except Exception as e:
-            plt.plot(x[:-1], self.past_sq_err)
-            plt.xlabel('Time (sec)')
-            plt.ylabel('Absolute Value of Deviations')
-            plt.show(block=False)
-            plt.pause(0.01)
-            print(f"Run into known Matplotlib bug, can't show plot. \n Error {e}")
+            plt.pause(0.0001)
+        except Exception:
+            print("Run into known Matplotlib bug, can't show plot.")
 
     def close(self):
         self.done = True
         self.reset()
         sys.exit()
+
+    def inspect(self):
+        return self.flight.show_internal_states()

@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter, writer
 
 def train():
     ######### Hyperparameters #########
-    env_name = "inertia-train-v0"
+    env_name = "sticky-train-v0"
     random_seed = 0
     log_interval = 10           # print avg reward after interval
     solved_reward = 200          # stop training if avg_reward > solved_reward

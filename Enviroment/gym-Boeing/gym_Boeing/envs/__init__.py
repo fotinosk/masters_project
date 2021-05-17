@@ -19,3 +19,6 @@ from gym_Boeing.envs.AB_wrong_test      import FailureMode11
 from gym_Boeing.envs.different_actuation import FailureMode12
 from gym_Boeing.envs.four_modes         import FailureMode13
 from gym_Boeing.envs.four_modes_test    import FailureMode14
+
+from gym_Boeing.envs.boeing_demo        import Demo
+from gym_Boeing.envs.boeing_danger_demo import Demo2

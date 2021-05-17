@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 from tqdm import tqdm
+import sys
 
 import gym
 import gym_Boeing
@@ -9,8 +10,8 @@ import numpy as np
 import torch
 
 from ddpg import DDPG
-from wrappers import NormalizedActions
 from augment import Augment
+import matplotlib.pyplot as plt
 
 # Parse given arguments
 parser = argparse.ArgumentParser()
@@ -40,7 +41,7 @@ if __name__ == "__main__":
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
-    checkpoint_dir = args.save_dir + args.env
+    checkpoint_dir = args.save_dir + "boeing-danger-v1"
 
     agent = DDPG(gamma,
                  tau,
@@ -58,7 +59,7 @@ if __name__ == "__main__":
         step = 0
         returns = list()
         i = i % 4
-        state = torch.Tensor([env.reset(ds=i)]).to(device)
+        state = torch.Tensor([env.reset()]).to(device)
         episode_return = 0
         while True:
             
@@ -82,6 +83,31 @@ if __name__ == "__main__":
             if done:
                 env.render()
                 returns.append(episode_return)
+
+                # states = env.inspect()
+                # states_arr = np.array(states)
+
+                # time = np.arange(0, 0.05 * len(states), 0.05)
+
+                # print(len(time), states_arr.shape)
+
+                # ax2 = plt.subplot(311)
+                # ax2.set_ylabel('Vertical V.')
+                # plt.scatter(time, states_arr[:,1], s=2)
+                # plt.title('After Training')
+
+                # ax3 = plt.subplot(312, sharex=ax2)
+                # ax3.set_ylabel('Pitch Rate')
+                # plt.scatter(time, states_arr[:,2], s=2)
+
+                # ax4 = plt.subplot(313, sharex=ax2)
+                # ax4.set_ylabel('Pitch Angle')
+                # ax4.set_xlabel('Time (s)')
+                # plt.scatter(time, states_arr[:,3], s=2)
+                
+                # plt.show()
+                # sys.exit()
+                input('Press ENTER to continue')
                 break
 
     mean = np.mean(returns)

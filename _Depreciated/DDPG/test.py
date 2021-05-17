@@ -1,15 +1,12 @@
 import argparse
 import logging
-import os
-from tqdm import tqdm
-
+import os, sys
+import matplotlib.pyplot as plt
 import gym
 import gym_Boeing
 import numpy as np
 import torch
-
 from ddpg import DDPG
-from wrappers import NormalizedActions
 
 # Create logger
 logger = logging.getLogger('test')
@@ -19,7 +16,7 @@ logger.addHandler(logging.StreamHandler())
 
 # Parse given arguments
 parser = argparse.ArgumentParser()
-parser.add_argument("--env", default="boeing-danger-v0",
+parser.add_argument("--env", default="demonstration-v1",
                     help="Env. on which the agent should be trained")
 parser.add_argument("--render", default="True", help="Render the steps")
 parser.add_argument("--seed", default=0, help="Random seed")
@@ -41,7 +38,6 @@ if __name__ == "__main__":
     # Create the env
     kwargs = dict()
     env = gym.make(args.env, **kwargs)
-    # env = NormalizedActions(env)
 
     # Setting rnd seed for reproducibility
     env.seed(args.seed)
@@ -49,10 +45,9 @@ if __name__ == "__main__":
     np.random.seed(args.seed)
 
     # Use checkpoint for safe to train danger
-    checkpoint_dir = args.save_dir + args.env
+    checkpoint_dir = args.save_dir + 'middle'
 
     # f = open('outptu.txt', 'a')
-
 
     agent = DDPG(gamma,
                  tau,
@@ -67,36 +62,54 @@ if __name__ == "__main__":
     # Load the agents parameters
     agent.set_eval()
 
-    for _ in tqdm(range(args.episodes)):
+    for _ in range(args.episodes):
         step = 0
         returns = list()
         state = torch.Tensor([env.reset()]).to(device)
         episode_return = 0
         while True:
-            # if args.render:
-            #     env.render()
-
             action = agent.calc_action(state, action_noise=None)
             q_value = agent.critic(state, action)
             next_state, reward, done, _ = env.step(action.cpu().numpy()[0])
             episode_return += reward
 
             state = torch.Tensor([next_state]).to(device)
-
-            # f.write(f"Action {action}, State: {state}")
-
             step += 1
 
             if done:
                 env.render()
                 logger.info(episode_return)
                 returns.append(episode_return)
-                # f.write(f"Episode return {episode_return}")
+                states = env.inspect()
+                states_arr = np.array(states)
+
+                time = np.arange(0, 0.05*len(states), 0.05)
+
+                # ax1 = plt.subplot(411)
+                # ax1.set_ylabel('Forward V.')
+                # plt.scatter(time, states_arr[:,0], s=2)
+
+                ax2 = plt.subplot(311)
+                ax2.set_ylabel('Vertical V.')
+                plt.scatter(time, states_arr[:,1], s=2)
+                plt.title('Mid Training')
+
+                ax3 = plt.subplot(312, sharex=ax2)
+                ax3.set_ylabel('Pitch Rate')
+                plt.scatter(time, states_arr[:,2], s=2)
+
+                ax4 = plt.subplot(313, sharex=ax2)
+                ax4.set_ylabel('Pitch Angle')
+                ax4.set_xlabel('Time (s)')
+                plt.scatter(time, states_arr[:,3], s=2)
+
+                
+                plt.show()
+
+                sys.exit()
                 break
 
     # f.close()
     mean = np.mean(returns)
     variance = np.var(returns)
     logger.info("Score (on 100 episodes): {} +/- {}".format(mean, variance))
-
-# Todo: Actions are between 1 and -1, maybe fix

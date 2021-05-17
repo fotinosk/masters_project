@@ -1,13 +1,13 @@
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
-from utils.flight import Flight
+from utils.flight_demo import Flight
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-class FailureDanger(gym.Env):
+class Demo2(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self):
@@ -22,31 +22,49 @@ class FailureDanger(gym.Env):
     def step(self, action):
         self.observation = self.flight.io(action)
 
+        # sq_error = np.sum(np.square(self.observation))
         sq_error = np.linalg.norm(self.observation, 1)
         self.past_sq_err.append(sq_error)
 
         control_acc = 20  # hyperparameter
         control_len = 800  # hyperparameter
-        failure_time = 5000  #hyperparameter: max number of steps
+
+        # reward option 1
+        # reward = 0
+        # if sq_error < control_acc:
+        #     reward += 10
+        #     if len(self.past_sq_err) > control_len and self.past_sq_err[-control_len:] < [control_acc]:
+        #         self.done = True
+        #         reward = 100
+        # else:
+        #     reward -= sq_error
+
+        # reward option 2
+        # reward = 10 * np.exp(- 1e-6 * sq_error)
+
+        # reward option 3
+        # reward = 0
+        # if len(self.past_sq_err) > control_len and max(self.past_sq_err[-control_len:]) < control_acc:
+        #     print(f"Actions taken: {len(self.past_sq_err)}, Last Squared Error: {sq_error}")
+        #     self.done = True
+        #     reward = 100
+        # # reward -= np.sqrt(sq_error)
+        # reward -= sq_error
 
         # reward option 4 (l_1 norm)
         reward = 0
         if sq_error < control_acc:
             reward += 10
         if len(self.past_sq_err) > control_len and max(self.past_sq_err[-control_len:]) < control_acc:
+            # print(f"Actions taken: {len(self.past_sq_err)}, Last Squared Error: {sq_error}")
             self.done = True
             reward = 100
-            print('Success!')
-        elif len(self.past_sq_err) == failure_time:
-            self.done = True
-            reward = - 1000
-            print('Failure!')
         reward -= sq_error
 
         return self.observation, reward, self.done, {'len': len(self.past_sq_err), 'error': sq_error}
 
-    def reset(self, ds=None):
-        self.flight.reset(ds=ds)
+    def reset(self, de=None):
+        self.flight.reset(ds=None)
         self.observation = [0, 0, 0]
         self.past_sq_err = []
         self.done = False
@@ -61,16 +79,14 @@ class FailureDanger(gym.Env):
             plt.xlabel('Time (sec)')
             plt.ylabel('Absolute Value of Deviations')
             plt.show(block=False)
-            plt.pause(0.01)
+            plt.pause(0.0001)
         except Exception as e:
-            plt.plot(x[:-1], self.past_sq_err)
-            plt.xlabel('Time (sec)')
-            plt.ylabel('Absolute Value of Deviations')
-            plt.show(block=False)
-            plt.pause(0.01)
             print(f"Run into known Matplotlib bug, can't show plot. \n Error {e}")
 
     def close(self):
         self.done = True
         self.reset()
         sys.exit()
+    
+    def inspect(self):
+        return self.flight.show_internal_states()

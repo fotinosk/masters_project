@@ -6,4 +6,8 @@ from lunar_gym.envs.mass_po_train import MassModeTrainPO
 from lunar_gym.envs.intertia_modes_train import InertiaModeTrain
 from lunar_gym.envs.intertia_modes_test import InertiaModeTest
 from lunar_gym.envs.intertia_mass_train import InertiaMassTrain
+from lunar_gym.envs.intertia_mass_test import InertiaMassTest
+from lunar_gym.envs.sticky_modes_train import StickyModeTrain
+from lunar_gym.envs.sticky_im_train import StickyMITrain
+from lunar_gym.envs.sticky_im_test import StickyMITest
 

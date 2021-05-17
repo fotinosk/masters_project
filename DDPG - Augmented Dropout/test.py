@@ -11,6 +11,7 @@ import torch
 from ddpg import DDPG
 from wrappers import NormalizedActions
 from augment import Augment
+import matplotlib.pyplot as plt 
 
 
 env         = input("Select Enviroment \n")
@@ -79,5 +80,7 @@ if __name__ == "__main__":
             if done:
                 env.render(stack=True)
                 returns.append(episode_return)
+                input('Press ENTER to continue')
+                # plt.clf()
                 break
-    plt.savefig('wrong_B.png')
+    # plt.savefig('wrong_B.png')

@@ -14,4 +14,12 @@ register(id='inertia-train-v0', entry_point = 'lunar_gym.envs:InertiaModeTrain')
 
 register(id='inertia-test-v0', entry_point = 'lunar_gym.envs:InertiaModeTest')
 
-register(id='inertia-mass-train-v0', entry_point = 'lunar_gym.envs:InertiaMassTest')
+register(id='inertia-mass-train-v0', entry_point = 'lunar_gym.envs:InertiaMassTrain')
+
+register(id='inertia-mass-test-v0', entry_point = 'lunar_gym.envs:InertiaMassTest')
+
+register(id='sticky-train-v0', entry_point = 'lunar_gym.envs:StickyModeTrain')
+
+register(id='sticky-im-train-v0', entry_point = 'lunar_gym.envs:StickyMITrain')
+
+register(id='sticky-im-test-v0', entry_point = 'lunar_gym.envs:StickyMITest')

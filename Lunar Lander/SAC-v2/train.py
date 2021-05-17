@@ -19,7 +19,7 @@ def train():
     replay_buffer_size = 1e6
     replay_buffer = ReplayBuffer(replay_buffer_size)
 
-    ENV = 'inertia-train-v0'
+    ENV = 'sticky-im-train-v0'
     env = MuJoCoHistoryEnv(ENV, hist_len=20)
     action_dim = env.action_space.shape[0]
     state_dim  = env.observation_space.shape[0]
