@@ -175,7 +175,7 @@ class LunarLander(gym.Env, EzPickle):
         self.lander.color1 = (0.5, 0.4, 0.9)
         self.lander.color2 = (0.3, 0.3, 0.5)
 
-        if not mode:
+        if mode is None:
             mode = random.randint(0,self.modes-1)
         assert 0 <= mode < self.modes and isinstance(mode, int), 'Invalid Mode'
 

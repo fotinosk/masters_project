@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter, writer
 
 def train():
     ######### Hyperparameters #########
-    env_name = "sticky-train-v0"
+    env_name = "inertia-train-v0"
     random_seed = 0
     log_interval = 10           # print avg reward after interval
     solved_reward = 200          # stop training if avg_reward > solved_reward
@@ -26,7 +26,7 @@ def train():
     noise_clip = 0.5
     policy_delay = 2            # delayed policy updates parameter
 
-    directory = "./models/{}".format(env_name)  # save trained models
+    directory = "./models2/{}".format(env_name)  # save trained models
     filename = "TD3_{}_{}".format(env_name, random_seed)
     ###################################
     
@@ -39,7 +39,7 @@ def train():
     policy = TD3(lr, state_dim, action_dim, max_action)
     replay_buffer = ReplayBuffer()
 
-    writer = SummaryWriter()
+    writer = SummaryWriter(comment=env_name)
     
     if random_seed:
         print("Random Seed: {}".format(random_seed))
@@ -50,7 +50,7 @@ def train():
     # logging variables:
     avg_reward = 0
     ep_reward = 0
-    log_f = open("log.txt","w+")
+    log_f = open(f"{env_name}_ep_rewards.txt","w+")
     
     # training procedure:
     for episode in range(1, max_episodes+1):

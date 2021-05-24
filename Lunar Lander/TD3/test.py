@@ -1,17 +1,18 @@
 import gym
+import numpy as np
 from TD3 import TD3
 from PIL import Image
 import lunar_gym
 from gym_pomdp_wrappers import MuJoCoHistoryEnv
 
 def test():
-    trained_env_name = "sticky-im-train-v0"
-    test_env_name = "sticky-im-test-v0"
+    trained_env_name = "inertia-mass-train-v0"
+    test_env_name = "inertia-mass-test-v0"
     random_seed = 0
-    n_episodes = 20
+    n_episodes = 100
     lr = 0.001
     max_timesteps = 3000
-    render = True
+    render = False
     save_gif = False
     
     filename = "TD3_{}_{}".format(trained_env_name, random_seed)
@@ -26,10 +27,12 @@ def test():
     policy = TD3(lr, state_dim, action_dim, max_action)
     
     policy.load_actor(directory, filename)
+
+    res_dict = {i: [] for i in range(env.modes)}
     
-    for ep in range(1, n_episodes+1):
+    for ep in range(n_episodes):
         ep_reward = 0
-        state = env.reset(mode=ep%11)
+        state = env.reset(mode=ep%env.modes)
         for t in range(max_timesteps):
             action = policy.select_action(state)
             state, reward, done, _ = env.step(action)
@@ -42,10 +45,13 @@ def test():
                      img.save('./gif/{}.jpg'.format(t))
             if done:
                 break
-            
-        print('Episode: {}\tReward: {}'.format(ep, int(ep_reward)))
+
+        res_dict[ep%env.modes].append(ep_reward)    
+        print('Episode: {}\tReward: {}\tMode: {}\n'.format(ep, int(ep_reward),ep%env.modes))
         ep_reward = 0
-        env.close()        
+        env.close() 
+    for k in res_dict.keys():
+        print(k, np.mean(res_dict[k]), np.std(res_dict[k]))     
                 
 if __name__ == '__main__':
     test()

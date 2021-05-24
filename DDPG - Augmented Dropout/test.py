@@ -1,5 +1,3 @@
-import argparse
-import os
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
@@ -53,11 +51,10 @@ if __name__ == "__main__":
 
     agent.set_eval()
 
-    # for _ in tqdm(range(args.episodes)):
-    for i in tqdm(range(env.possibilities)):
+    for i in tqdm(range(20)):
         step = 0
         returns = list()
-        state = torch.Tensor([env.reset(ds=i)]).to(device)
+        state = torch.Tensor([env.reset(ds=i % 4)]).to(device)
         episode_return = 0
         while True:
             

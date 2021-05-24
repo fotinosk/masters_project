@@ -19,13 +19,13 @@ def train():
     replay_buffer_size = 1e6
     replay_buffer = ReplayBuffer(replay_buffer_size)
 
-    ENV = 'sticky-im-train-v0'
+    ENV = 'mass-train-v0'
     env = MuJoCoHistoryEnv(ENV, hist_len=20)
     action_dim = env.action_space.shape[0]
     state_dim  = env.observation_space.shape[0]
     action_range=1.
 
-    writter = SummaryWriter()
+    writter = SummaryWriter(comment=ENV)
     
     # hyper-parameters for RL training
     max_episodes  = 10000
@@ -38,8 +38,10 @@ def train():
     DETERMINISTIC=False
     hidden_dim = 512
     rewards     = []
-    model_path = f'./models/{ENV}/'
+    model_path = f'./models2/{ENV}/'
     solved_reward = 200
+
+    log_f = open(f"{ENV}_ep_rewards.txt","w+")
 
     sac_trainer=SAC_Trainer(replay_buffer, hidden_dim=hidden_dim, action_range=action_range, state_dim=state_dim, action_dim=action_dim)
 
@@ -66,18 +68,23 @@ def train():
             if done:
                 break
         
+        log_f.write('{},{}\n'.format(eps, episode_reward))
         writter.add_scalar('Episode Reward', episode_reward, eps)
+        writter.flush()
+        log_f.flush()
 
-        if eps % 20 == 0 and eps>0: # plot and model saving interval
+        if eps % 200 == 0 and eps>0: # plot and model saving interval
             # plot(rewards)
-            np.save('rewards', rewards)
+            # np.save('rewards_{ENV}', rewards)
             sac_trainer.save_model(model_path)
+            
         print('Episode: ', eps, '| Episode Reward: ', episode_reward)
         rewards.append(episode_reward)
 
         if np.mean(rewards[-5:]) > solved_reward:
             print('######## Solved! ########')
             sac_trainer.save_model(model_path)
+            log_f.close()
             break
 
     sac_trainer.save_model(model_path)

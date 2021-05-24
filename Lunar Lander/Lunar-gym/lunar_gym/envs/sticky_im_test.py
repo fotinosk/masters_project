@@ -115,7 +115,7 @@ class LunarLander(gym.Env, EzPickle):
             # Nop, fire left engine, main engine, right engine
             self.action_space = spaces.Discrete(4)
 
-        self.reset()
+        # self.reset()
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -187,7 +187,7 @@ class LunarLander(gym.Env, EzPickle):
         self.lander.color1 = (0.5, 0.4, 0.9)
         self.lander.color2 = (0.3, 0.3, 0.5)
 
-        if not mode:
+        if mode is None:
             mode = random.randint(0, self.modes-1)
         assert 0 <= mode < self.modes and isinstance(mode, int), 'Invalid Mode'
 

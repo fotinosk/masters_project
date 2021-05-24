@@ -76,6 +76,7 @@ class LunarLander(gym.Env, EzPickle):
         self.moon = None
         self.lander = None
         self.particles = []
+        self.modes = 3
 
         self.prev_reward = None
 
@@ -108,7 +109,7 @@ class LunarLander(gym.Env, EzPickle):
         self.world.DestroyBody(self.legs[0])
         self.world.DestroyBody(self.legs[1])
 
-    def reset(self):
+    def reset(self, mode=None):
         self._destroy()
         self.world.contactListener_keepref = ContactDetector(self)
         self.world.contactListener = self.world.contactListener_keepref
@@ -162,9 +163,10 @@ class LunarLander(gym.Env, EzPickle):
         self.lander.color1 = (0.5, 0.4, 0.9)
         self.lander.color2 = (0.3, 0.3, 0.5)
 
-        # if random.choice([True, False]):
-        #     self.lander.mass = 10
-        mode = random.choice([0,1,2])
+        if not mode:
+            mode = random.randint(0,self.modes-1)
+        assert 0 <= mode < self.modes and isinstance(mode, int), 'Invalid Mode'
+
         if mode == 1:
             self.lander.mass = ALT_MASS
             print(f'Mode 1: Mass set to {ALT_MASS}')

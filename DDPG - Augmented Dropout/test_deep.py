@@ -78,5 +78,8 @@ if __name__ == "__main__":
             if done:
                 env.render(stack=True)
                 returns.append(episode_return)
+                if i % 4 == 3:
+                    input('Save and press ENTER to continue')
+                    env.render(stack=False)
                 break
-    plt.savefig('wrong_B.png')
+    # plt.savefig('wrong_B.png')
