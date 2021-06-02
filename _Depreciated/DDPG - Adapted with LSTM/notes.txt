@@ -1,9 +1,0 @@
-This is an attempt to implement the LSTM layer, in the current DDPG model
-The DDPG model is known to work
-
-This is a log of the neccesart adaptations:
-1. Change the memory to be episodic
-2. Change the model and main to propagate cx and hx
-
-
-Trajectory length: The max episode length of the memory

@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
@@ -11,6 +12,7 @@ import torch
 from ddpg_deeper import DDPG
 from augment import Augment
 
+plt.rcParams.update({'font.size': 16})
 
 env         = input("Select Enviroment \n")
 save_dir    = r"./saved_deep_models_failure_modes/"

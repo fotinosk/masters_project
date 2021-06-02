@@ -28,6 +28,8 @@ class Demo2(gym.Env):
 
         control_acc = 20  # hyperparameter
         control_len = 800  # hyperparameter
+        failure_time = 5000
+
 
         # reward option 1
         # reward = 0
@@ -59,12 +61,16 @@ class Demo2(gym.Env):
             # print(f"Actions taken: {len(self.past_sq_err)}, Last Squared Error: {sq_error}")
             self.done = True
             reward = 100
+        elif len(self.past_sq_err) == failure_time:
+            self.done = True
+            reward = -1000
+
         reward -= sq_error
 
         return self.observation, reward, self.done, {'len': len(self.past_sq_err), 'error': sq_error}
 
-    def reset(self, de=None):
-        self.flight.reset(ds=None)
+    def reset(self, ds=None):
+        self.flight.reset(ds=ds)
         self.observation = [0, 0, 0]
         self.past_sq_err = []
         self.done = False
@@ -78,6 +84,8 @@ class Demo2(gym.Env):
             plt.plot(x, self.past_sq_err)
             plt.xlabel('Time (sec)')
             plt.ylabel('Absolute Value of Deviations')
+            plt.xlim(0,100)
+            plt.ylim(0,120)
             plt.show(block=False)
             plt.pause(0.0001)
         except Exception as e:

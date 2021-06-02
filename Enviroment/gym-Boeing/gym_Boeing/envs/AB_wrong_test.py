@@ -111,9 +111,20 @@ class FailureMode11(gym.Env):
             plt.plot(x, self.past_err)
             plt.xlabel('Time (sec)')
             plt.ylabel('Absolute Value of Deviations')
+            plt.xlim(0,100)
+            plt.ylim(0,120)
             plt.show(block=block)
             plt.pause(0.01)
         except Exception:
+            if not stack:
+                plt.cla()
+            plt.plot(x[:-1], self.past_err)
+            plt.xlabel('Time (sec)')
+            plt.ylabel('Absolute Value of Deviations')
+            plt.xlim(0,100)
+            plt.ylim(0,120)
+            plt.show(block=block)
+            plt.pause(0.01)
             print("Run into known Matplotlib bug, can't show plot.")
 
     def close(self):

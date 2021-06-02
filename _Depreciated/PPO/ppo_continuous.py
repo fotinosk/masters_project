@@ -363,6 +363,9 @@ def main():
     torch.manual_seed(RANDOMSEED)
 
     ppo = PPO(num_inputs, action_dim, hidden_dim=128)
+    # print(ppo.actor)
+    # print(ppo.critic)
+    sys.exit()
 
     if args.train:
         all_ep_r = []

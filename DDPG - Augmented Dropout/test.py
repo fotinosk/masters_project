@@ -11,9 +11,11 @@ from wrappers import NormalizedActions
 from augment import Augment
 import matplotlib.pyplot as plt 
 
+plt.rcParams.update({'font.size': 16})
+
 
 env         = input("Select Enviroment \n")
-save_dir    = "./saved_models_failure_modes/"
+save_dir    = "./saved_models_dropout/"
 render      = True
 seed        = 0
 episodes    = 100
@@ -75,7 +77,7 @@ if __name__ == "__main__":
             step += 1
 
             if done:
-                env.render(stack=True)
+                env.render()
                 returns.append(episode_return)
                 input('Press ENTER to continue')
                 # plt.clf()

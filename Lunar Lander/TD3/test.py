@@ -6,8 +6,8 @@ import lunar_gym
 from gym_pomdp_wrappers import MuJoCoHistoryEnv
 
 def test():
-    trained_env_name = "inertia-mass-train-v0"
-    test_env_name = "inertia-mass-test-v0"
+    trained_env_name = "sticky-im-train-v0"
+    test_env_name = "sticky-im-test-v0"
     random_seed = 0
     n_episodes = 100
     lr = 0.001

@@ -28,30 +28,8 @@ class BoeingDanger(gym.Env):
 
         control_acc = 20  # hyperparameter
         control_len = 800  # hyperparameter
+        failure_time = 5000
 
-        # reward option 1
-        # reward = 0
-        # if sq_error < control_acc:
-        #     reward += 10
-        #     if len(self.past_sq_err) > control_len and self.past_sq_err[-control_len:] < [control_acc]:
-        #         self.done = True
-        #         reward = 100
-        # else:
-        #     reward -= sq_error
-
-        # reward option 2
-        # reward = 10 * np.exp(- 1e-6 * sq_error)
-
-        # reward option 3
-        # reward = 0
-        # if len(self.past_sq_err) > control_len and max(self.past_sq_err[-control_len:]) < control_acc:
-        #     print(f"Actions taken: {len(self.past_sq_err)}, Last Squared Error: {sq_error}")
-        #     self.done = True
-        #     reward = 100
-        # # reward -= np.sqrt(sq_error)
-        # reward -= sq_error
-
-        # reward option 4 (l_1 norm)
         reward = 0
         if sq_error < control_acc:
             reward += 10
@@ -59,12 +37,16 @@ class BoeingDanger(gym.Env):
             # print(f"Actions taken: {len(self.past_sq_err)}, Last Squared Error: {sq_error}")
             self.done = True
             reward = 100
+        elif len(self.past_err) == failure_time:
+            self.done = True
+            reward = -1000
+            print('Episode Failed')
         reward -= sq_error
 
         return self.observation, reward, self.done, {'len': len(self.past_sq_err), 'error': sq_error}
 
-    def reset(self):
-        self.flight.reset()
+    def reset(self, ds=None):
+        self.flight.reset(ds)
         self.observation = [0, 0, 0]
         self.past_sq_err = []
         self.done = False

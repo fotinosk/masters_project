@@ -22,8 +22,8 @@ def test():
     # ENV = ['Reacher', 'Pendulum-v0', 'HalfCheetah-v2'][2]
     ENV = 'Lunar Lander'
     if ENV == 'Lunar Lander':
-        train_ENV = 'inertia-mass-train-v0'
-        test_ENV = 'inertia-mass-test-v0'
+        train_ENV = 'sticky-im-train-v0'
+        test_ENV = 'sticky-im-test-v0'
         env = MuJoCoHistoryEnv(test_ENV, hist_len=20)
         action_dim = env.action_space.shape[0]
         state_dim  = env.observation_space.shape[0]
@@ -37,7 +37,7 @@ def test():
     max_steps   = 500
     DETERMINISTIC=False
     hidden_dim = 512
-    model_path = f'./models/{train_ENV}/'
+    model_path = f'./models2/{train_ENV}/'
 
     sac_trainer = SAC_Trainer(replay_buffer, hidden_dim=hidden_dim, action_range=action_range, state_dim=state_dim, action_dim=action_dim)
 

@@ -1,4 +1,5 @@
 from os import write
+import sys
 import torch
 import gym
 import numpy as np
@@ -37,6 +38,9 @@ def train():
     max_action = float(env.action_space.high[0])
     
     policy = TD3(lr, state_dim, action_dim, max_action)
+    print(policy.actor)
+    print(policy.critic_1)
+    sys.exit()
     replay_buffer = ReplayBuffer()
 
     writer = SummaryWriter(comment=env_name)
