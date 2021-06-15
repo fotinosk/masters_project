@@ -6,6 +6,8 @@ import numpy as np
 from utils import ReplayBuffer
 from gym_pomdp_wrappers import MuJoCoHistoryEnv
 import matplotlib.pyplot as plt
+from PIL import Image
+
 
 def plot(rewards):
     plt.figure(figsize=(20,5))
@@ -22,8 +24,8 @@ def test():
     # ENV = ['Reacher', 'Pendulum-v0', 'HalfCheetah-v2'][2]
     ENV = 'Lunar Lander'
     if ENV == 'Lunar Lander':
-        train_ENV = 'sticky-im-train-v0'
-        test_ENV = 'sticky-im-test-v0'
+        train_ENV = 'mass-train-v0'
+        test_ENV = 'mass-test-v0'
         env = MuJoCoHistoryEnv(test_ENV, hist_len=20)
         action_dim = env.action_space.shape[0]
         state_dim  = env.observation_space.shape[0]
@@ -34,10 +36,11 @@ def test():
         state_dim  = env.observation_space.shape[0]
         action_range=1.
 
-    max_steps   = 500
+    max_steps   = 1000
     DETERMINISTIC=False
     hidden_dim = 512
     model_path = f'./models2/{train_ENV}/'
+    save_gif = True
 
     sac_trainer = SAC_Trainer(replay_buffer, hidden_dim=hidden_dim, action_range=action_range, state_dim=state_dim, action_dim=action_dim)
 
@@ -52,13 +55,21 @@ def test():
         for step in range(max_steps):
             action = sac_trainer.policy_net.get_action(state, deterministic = DETERMINISTIC)
             next_state, reward, done, _ = env.step(action)
-            # env.render()   
+            env.render()   
 
             episode_reward += reward
             state=next_state
 
+            if save_gif:
+                img = env.render(mode = 'rgb_array')
+                img = Image.fromarray(img)
+                img.save('./gif/{}.jpg'.format(step))
+
             if done:
+                input('Press ENTER to continue.')
                 break
+        input('Press ENTER to continue.')
+        
         
         res_dict[eps%env.modes].append(episode_reward)   
         print('Episode: ', eps, '| Episode Reward: ', episode_reward, ' | Mode: ', eps%env.modes, '\n')

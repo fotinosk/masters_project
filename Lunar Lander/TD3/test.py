@@ -6,14 +6,14 @@ import lunar_gym
 from gym_pomdp_wrappers import MuJoCoHistoryEnv
 
 def test():
-    trained_env_name = "sticky-im-train-v0"
-    test_env_name = "sticky-im-test-v0"
+    trained_env_name = "mass-train-v0"
+    test_env_name = "mass-test-v0"
     random_seed = 0
     n_episodes = 100
     lr = 0.001
     max_timesteps = 3000
-    render = False
-    save_gif = False
+    render = True
+    save_gif = True
     
     filename = "TD3_{}_{}".format(trained_env_name, random_seed)
     filename += '_solved'
@@ -44,6 +44,7 @@ def test():
                      img = Image.fromarray(img)
                      img.save('./gif/{}.jpg'.format(t))
             if done:
+                input('Press ENTER to continue.')
                 break
 
         res_dict[ep%env.modes].append(ep_reward)    
